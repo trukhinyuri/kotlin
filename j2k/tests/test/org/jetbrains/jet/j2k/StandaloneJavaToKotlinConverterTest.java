@@ -16,8 +16,6 @@
 
 package org.jetbrains.jet.j2k;
 
-import com.intellij.mock.MockProject;
-import com.intellij.openapi.roots.ProjectRootModificationTracker;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
@@ -48,10 +46,7 @@ public class StandaloneJavaToKotlinConverterTest extends UsefulTestCase {
     protected void runTest() throws Throwable {
         JetCoreEnvironment jetCoreEnvironment = createEnvironmentWithMockJdkAndIdeaAnnotations(getTestRootDisposable(), ConfigurationKind.JDK_ONLY);
 
-        MockProject project = (MockProject) jetCoreEnvironment.getProject();
-        project.registerService(ProjectRootModificationTracker.class, JavaToKotlinTranslator.NEVER_CHANGED);
-
-        Converter converter = new Converter(project);
+        Converter converter = new Converter(jetCoreEnvironment.getProject());
 
         String javaPath = "j2k/tests/testData/" + getTestFilePath();
         String kotlinPath = javaPath.replace(".jav", ".kt");

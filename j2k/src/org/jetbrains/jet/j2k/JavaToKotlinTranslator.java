@@ -74,8 +74,6 @@ public class JavaToKotlinTranslator {
         JavaCoreApplicationEnvironment applicationEnvironment = new JavaCoreApplicationEnvironment(DISPOSABLE);
         JavaCoreProjectEnvironment javaCoreEnvironment = new JavaCoreProjectEnvironment(DISPOSABLE, applicationEnvironment);
 
-        javaCoreEnvironment.getProject().registerService(ProjectRootModificationTracker.class, NEVER_CHANGED);
-
         javaCoreEnvironment.addJarToClassPath(PathUtil.findRtJar());
         File annotations = findAnnotations();
         if (annotations != null && annotations.exists()) {

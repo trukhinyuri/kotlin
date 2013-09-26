@@ -16,31 +16,71 @@
 
 package org.jetbrains.jet.lang.resolve.lazy;
 
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jet.lang.descriptors.DeclarationDescriptor;
 import org.jetbrains.jet.lang.resolve.scopes.JetScope;
+import org.jetbrains.jet.lang.types.JetType;
 import org.jetbrains.jet.lang.types.TypeConstructor;
+import org.jetbrains.jet.lang.types.TypeProjection;
+
+import java.util.Collection;
 
 public class ForceResolveUtil {
+    private static final Logger LOG = Logger.getInstance(ForceResolveUtil.class);
+
     private ForceResolveUtil() {}
 
-    public static void forceResolveAllContents(@NotNull DeclarationDescriptor descriptor) {
+    public static void forceResolveAllContents(@Nullable DeclarationDescriptor descriptor) {
         if (descriptor instanceof LazyDescriptor) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("descriptor: " + descriptor);
+            }
             LazyDescriptor lazyDescriptor = (LazyDescriptor) descriptor;
             lazyDescriptor.forceResolveAllContents();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("<<< " + descriptor);
+            }
         }
     }
 
-    public static void forceResolveAllContents(@NotNull JetScope scope) {
-        for (DeclarationDescriptor descriptor : scope.getAllDescriptors()) {
+    public static void forceResolveAllContents(@Nullable TypeConstructor typeConstructor) {
+        if (typeConstructor instanceof LazyDescriptor) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("type constructor: " + typeConstructor);
+            }
+            LazyDescriptor lazyConstructor = (LazyDescriptor) typeConstructor;
+            lazyConstructor.forceResolveAllContents();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("<<< " + typeConstructor);
+            }
+        }
+    }
+
+    public static void forceResolveAllContents(@NotNull Iterable<? extends DeclarationDescriptor> descriptors) {
+        for (DeclarationDescriptor descriptor : descriptors) {
             forceResolveAllContents(descriptor);
         }
     }
 
-    public static void forceResolveAllContents(@NotNull TypeConstructor typeConstructor) {
-        if (typeConstructor instanceof LazyDescriptor) {
-            LazyDescriptor lazyConstructor = (LazyDescriptor) typeConstructor;
-            lazyConstructor.forceResolveAllContents();
+    public static void forceResolveAllContents(@NotNull JetScope scope) {
+        forceResolveAllContents(scope.getAllDescriptors());
+        forceResolveAllContents(scope.getObjectDescriptors());
+    }
+
+    public static void forceResolveAllContents(@NotNull Collection<JetType> types) {
+        for (JetType type : types) {
+            forceResolveAllContents(type);
+        }
+    }
+
+    public static void forceResolveAllContents(@Nullable JetType type) {
+        if (type == null) return;
+
+        forceResolveAllContents(type.getConstructor());
+        for (TypeProjection projection : type.getArguments()) {
+            forceResolveAllContents(projection.getType());
         }
     }
 }

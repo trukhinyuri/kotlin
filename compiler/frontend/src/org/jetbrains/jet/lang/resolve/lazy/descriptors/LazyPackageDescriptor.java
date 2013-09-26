@@ -59,6 +59,7 @@ public class LazyPackageDescriptor extends AbstractNamespaceDescriptorImpl imple
         if (declaration != null) {
             resolveSession.getTrace().record(BindingContext.NAMESPACE, declaration, this);
         }
+        resolveSession.getTrace().record(BindingContext.FQNAME_TO_NAMESPACE_DESCRIPTOR, getFqName(), this);
     }
 
     @NotNull

@@ -44,6 +44,7 @@ import org.jetbrains.jet.lang.resolve.lazy.declarations.ClassMemberDeclarationPr
 import org.jetbrains.jet.lang.resolve.lazy.storage.NotNullLazyValue;
 import org.jetbrains.jet.lang.resolve.lazy.storage.NullableLazyValue;
 import org.jetbrains.jet.lang.resolve.lazy.storage.StorageManager;
+import org.jetbrains.jet.lang.resolve.name.FqNameUnsafe;
 import org.jetbrains.jet.lang.resolve.name.Name;
 import org.jetbrains.jet.lang.resolve.scopes.*;
 import org.jetbrains.jet.lang.types.JetType;
@@ -53,6 +54,7 @@ import org.jetbrains.jet.lang.types.TypeUtils;
 import java.util.*;
 
 import static org.jetbrains.jet.lang.resolve.DescriptorUtils.getClassObjectName;
+import static org.jetbrains.jet.lang.resolve.DescriptorUtils.getFQName;
 import static org.jetbrains.jet.lang.resolve.ModifiersChecker.*;
 
 public class LazyClassDescriptor extends ClassDescriptorBase implements LazyDescriptor, ClassDescriptor {
@@ -97,6 +99,10 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements LazyDesc
 
         if (classLikeInfo.getCorrespondingClassOrObject() != null) {
             this.resolveSession.getTrace().record(BindingContext.CLASS, classLikeInfo.getCorrespondingClassOrObject(), this);
+        }
+        FqNameUnsafe fqName = getFQName(this);
+        if (fqName.isSafe()) {
+            this.resolveSession.getTrace().record(BindingContext.FQNAME_TO_CLASS_DESCRIPTOR, fqName.toSafe(), this);
         }
 
         this.originalClassInfo = classLikeInfo;

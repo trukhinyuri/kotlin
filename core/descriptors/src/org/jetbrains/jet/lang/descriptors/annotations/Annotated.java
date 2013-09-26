@@ -16,8 +16,11 @@
 
 package org.jetbrains.jet.lang.descriptors.annotations;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 
 public interface Annotated {
+    @NotNull
     List<AnnotationDescriptor> getAnnotations();
 }

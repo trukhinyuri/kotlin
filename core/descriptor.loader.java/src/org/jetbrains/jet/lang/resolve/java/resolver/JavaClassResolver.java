@@ -315,7 +315,7 @@ public final class JavaClassResolver {
     }
 
     @NotNull
-    private static ClassKind determineClassKind(@NotNull JavaClass klass) {
+    public static ClassKind determineClassKind(@NotNull JavaClass klass) {
         if (klass.isInterface()) {
             return klass.isAnnotationType() ? ClassKind.ANNOTATION_CLASS : ClassKind.TRAIT;
         }
@@ -323,7 +323,7 @@ public final class JavaClassResolver {
     }
 
     @NotNull
-    private static Modality determineClassModality(@NotNull JavaClass klass) {
+    public static Modality determineClassModality(@NotNull JavaClass klass) {
         return klass.isAnnotationType()
                ? Modality.FINAL
                : Modality.convertFromFlags(klass.isAbstract() || klass.isInterface(), !klass.isFinal());
@@ -434,7 +434,7 @@ public final class JavaClassResolver {
         return FqNameUnsafe.fromSegments(correctedSegments);
     }
 
-    private static boolean isInnerClass(@NotNull JavaClass javaClass) {
+    public static boolean isInnerClass(@NotNull JavaClass javaClass) {
         return javaClass.getOuterClass() != null && !javaClass.isStatic();
     }
 

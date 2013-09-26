@@ -39,7 +39,7 @@ public class LazyJavaPackageFragmentScope(
     }
 
     override fun getClassifier(name: Name): ClassifierDescriptor {
-
+        throw UnsupportedOperationException()
     }
 
     override fun getProperties(name: Name): MutableCollection<VariableDescriptor> {

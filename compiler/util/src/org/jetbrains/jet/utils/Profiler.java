@@ -16,6 +16,7 @@
 
 package org.jetbrains.jet.utils;
 
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,12 +38,17 @@ public class Profiler {
 
     @NotNull
     public static Profiler create(@NotNull String name) {
-        return create(name, null);
+        return create(name, (PrintStream) null);
     }
 
     @NotNull
     public static Profiler create(@NotNull String name, @Nullable PrintStream out) {
-        Profiler profiler = new Profiler(name, out);
+        return create(name, new PrintingLogger(out == null ? System.out : out));
+    }
+
+    @NotNull
+    public static Profiler create(@NotNull String name, @NotNull Logger log) {
+        Profiler profiler = new Profiler(name, log);
         PROFILERS.get().push(profiler);
         return profiler;
     }
@@ -56,16 +62,16 @@ public class Profiler {
     }
 
     private final String name;
-    private final PrintStream out;
+    private final Logger log;
     private long start = Long.MAX_VALUE;
     private long cumulative = 0;
     private boolean paused = true;
     private StackTraceElement[] stackTrace;
     private boolean mute;
 
-    private Profiler(@NotNull String name, @Nullable PrintStream out) {
+    private Profiler(@NotNull String name, @Nullable Logger log) {
         this.name = name;
-        this.out = out == null ? System.out : out;
+        this.log = log == null ? PrintingLogger.SYSTEM_OUT : log;
     }
 
     public Profiler recordStackTrace(int depth) {
@@ -162,18 +168,17 @@ public class Profiler {
     }
 
     public Profiler println(Object message) {
-        if (!mute) {
-            out.println(message);
+        if (!mute && log.isDebugEnabled()) {
+            log.debug(String.valueOf(message));
         }
         return this;
     }
 
     public Profiler println(Object a, Object b) {
-        if (!mute) {
+        if (!mute && log.isDebugEnabled()) {
             OUT_LOCK.lock();
             try {
-                out.print(a);
-                out.println(b);
+                log.debug(String.valueOf(a) + b);
             }
             finally {
                 OUT_LOCK.unlock();
@@ -183,12 +188,10 @@ public class Profiler {
     }
 
     public Profiler println(Object a, Object b, Object c) {
-        if (!mute) {
+        if (!mute && log.isDebugEnabled()) {
             OUT_LOCK.lock();
             try {
-                out.print(a);
-                out.print(b);
-                out.println(c);
+                log.debug(String.valueOf(a) + b + c);
             }
             finally {
                 OUT_LOCK.unlock();
@@ -201,13 +204,14 @@ public class Profiler {
         if (!mute) {
             OUT_LOCK.lock();
             try {
-                out.print(a);
-                out.print(b);
-                out.print(c);
+                StringBuilder sb = new StringBuilder();
+                sb.append(a);
+                sb.append(b);
+                sb.append(c);
                 for (Object o : rest) {
-                    out.print(o);
+                    sb.append(o);
                 }
-                out.println();
+                log.debug(sb.toString());
             }
             finally {
                 OUT_LOCK.unlock();

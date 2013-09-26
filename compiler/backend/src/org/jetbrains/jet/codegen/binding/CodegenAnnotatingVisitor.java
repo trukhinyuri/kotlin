@@ -26,6 +26,7 @@ import org.jetbrains.jet.codegen.SamCodegenUtil;
 import org.jetbrains.jet.lang.descriptors.*;
 import org.jetbrains.jet.lang.descriptors.annotations.AnnotationDescriptor;
 import org.jetbrains.jet.lang.descriptors.impl.ClassDescriptorImpl;
+import org.jetbrains.jet.lang.diagnostics.DiagnosticUtils;
 import org.jetbrains.jet.lang.psi.*;
 import org.jetbrains.jet.lang.resolve.BindingContext;
 import org.jetbrains.jet.lang.resolve.BindingTrace;
@@ -146,7 +147,7 @@ class CodegenAnnotatingVisitor extends JetVisitorVoid {
     @Override
     public void visitEnumEntry(JetEnumEntry enumEntry) {
         ClassDescriptor descriptor = bindingContext.get(CLASS, enumEntry);
-        assert descriptor != null;
+        assert descriptor != null : "No descriptor for enum entry " + enumEntry.getName() + DiagnosticUtils.atLocation(enumEntry);
 
         boolean trivial = enumEntry.getDeclarations().isEmpty();
         if (!trivial) {
@@ -163,7 +164,7 @@ class CodegenAnnotatingVisitor extends JetVisitorVoid {
     @Override
     public void visitClassObject(JetClassObject classObject) {
         ClassDescriptor classDescriptor = bindingContext.get(CLASS, classObject.getObjectDeclaration());
-        assert classDescriptor != null;
+        assert classDescriptor != null: "No descriptor for class object " + DiagnosticUtils.atLocation(classObject);
 
         String name = peekFromStack(nameStack) + JvmAbi.CLASS_OBJECT_SUFFIX;
         recordClosure(classObject, classDescriptor, name, false);

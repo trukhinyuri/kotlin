@@ -100,7 +100,7 @@ public final class LoadDescriptorUtil {
         InjectorForJavaDescriptorResolver injector = new InjectorForJavaDescriptorResolver(jetCoreEnvironment.getProject(), trace);
         NamespaceDescriptor namespaceDescriptor =
                 injector.getJavaDescriptorResolver().resolveNamespace(TEST_PACKAGE_FQNAME, IGNORE_KOTLIN_SOURCES);
-        assert namespaceDescriptor != null;
+        assert namespaceDescriptor != null : "Cannot resolve package " + TEST_PACKAGE_FQNAME;
 
         return Pair.create(namespaceDescriptor, trace.getBindingContext());
     }

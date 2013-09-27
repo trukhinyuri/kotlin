@@ -137,7 +137,7 @@ public final class JavaNamespaceResolver {
     @Nullable
     private NamespaceDescriptorParent resolveParentNamespace(@NotNull FqName fqName) {
         if (fqName.isRoot()) {
-            return ourFakeRootModule;
+            return getOurFakeRootModule();
         }
         else {
             return resolveNamespace(fqName.parent(), INCLUDE_KOTLIN_SOURCES);

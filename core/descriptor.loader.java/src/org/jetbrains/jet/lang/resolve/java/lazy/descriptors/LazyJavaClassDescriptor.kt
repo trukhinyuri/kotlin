@@ -9,12 +9,13 @@ import org.jetbrains.jet.lang.resolve.scopes.JetScope
 import org.jetbrains.jet.lang.descriptors.ConstructorDescriptor
 import org.jetbrains.jet.lang.types.JetType
 import org.jetbrains.jet.lang.descriptors.ClassDescriptor
-import org.jetbrains.jet.lang.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.jet.lang.types.TypeConstructor
 import org.jetbrains.jet.lang.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.jet.lang.resolve.java.resolver.JavaClassResolver
 import org.jetbrains.jet.utils.emptyList
 import org.jetbrains.jet.utils.emptyOrSingletonList
+import org.jetbrains.jet.lang.descriptors.TypeParameterDescriptor
+import org.jetbrains.jet.lang.resolve.DescriptorFactory
 
 class LazyJavaClassDescriptor(
         storageManager: StorageManager,
@@ -33,17 +34,18 @@ class LazyJavaClassDescriptor(
     override fun getVisibility() = _visibility
     override fun isInner() = _isInner
 
-    override fun getTypeConstructor(): TypeConstructor {
+    private val _typeConstructor = storageManager.createLazyValue { LazyJavaClassTypeConstructor() }
+    override fun getTypeConstructor() = _typeConstructor.compute()
+
+    private val _scopeForMemberLookup = storageManager.createLazyValue {
+        // TODO
         throw UnsupportedOperationException()
     }
 
-    override fun getScopeForMemberLookup(): JetScope? {
-        throw UnsupportedOperationException()
-    }
+    override fun getScopeForMemberLookup() = _scopeForMemberLookup.compute()
 
-    override fun getThisAsReceiverParameter(): ReceiverParameterDescriptor {
-        throw UnsupportedOperationException()
-    }
+    private val _thisAsReceiverParameter = storageManager.createLazyValue { DescriptorFactory.createLazyReceiverParameterDescriptor(this) }
+    override fun getThisAsReceiverParameter() = _thisAsReceiverParameter.compute()
 
     // TODO
     override fun getUnsubstitutedInnerClassesScope(): JetScope = JetScope.EMPTY
@@ -62,4 +64,24 @@ class LazyJavaClassDescriptor(
     // TODO
     override fun getAnnotations(): MutableList<AnnotationDescriptor> = emptyList()
 
+    private inner class LazyJavaClassTypeConstructor : TypeConstructor {
+        override fun getParameters(): MutableList<TypeParameterDescriptor> {
+            // TODO
+            throw UnsupportedOperationException()
+        }
+
+        override fun getSupertypes(): MutableCollection<JetType> {
+            // TODO
+            throw UnsupportedOperationException()
+        }
+
+        override fun getAnnotations() = emptyList<AnnotationDescriptor>()
+
+        override fun isSealed() = !getModality().isOverridable()
+
+        override fun isDenotable() = true
+
+        override fun getDeclarationDescriptor() = this@LazyJavaClassDescriptor
+
+    }
 }

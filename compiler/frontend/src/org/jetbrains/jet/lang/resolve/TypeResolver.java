@@ -267,7 +267,7 @@ public class TypeResolver {
                     arguments.add(SubstitutionUtils.makeStarProjection(parameterDescriptor));
                 }
                 else {
-                    arguments.add(new TypeProjection(OUT_VARIANCE, ErrorUtils.createErrorType("*")));
+                    arguments.add(new TypeProjectionImpl(OUT_VARIANCE, ErrorUtils.createErrorType("*")));
                 }
             }
             else {
@@ -285,7 +285,7 @@ public class TypeResolver {
                         }
                     }
                 }
-                arguments.add(new TypeProjection(kind, type));
+                arguments.add(new TypeProjectionImpl(kind, type));
             }
         }
         return arguments;

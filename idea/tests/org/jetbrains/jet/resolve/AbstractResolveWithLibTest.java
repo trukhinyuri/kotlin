@@ -29,7 +29,7 @@ public abstract class AbstractResolveWithLibTest extends AbstractResolveBaseTest
     @Override
     protected LightProjectDescriptor getProjectDescriptor() {
         String testName = getTestName(true);
-        if (startsWithIgnoreCase(testName, ALL_FILES_PRESENT_PREFIX.substring(4))) {
+        if (startsWithIgnoreCase(testName, ALL_FILES_PRESENT_PREFIX)) {
             return null;
         }
         return new JdkAndMockLibraryProjectDescriptor(TEST_DATA_PATH + "/" + testName + "Src", false);

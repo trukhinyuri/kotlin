@@ -53,6 +53,7 @@ import static org.jetbrains.jet.lang.psi.JetPsiFactory.createExpression;
 import static org.jetbrains.jet.lang.psi.JetPsiFactory.createSimpleName;
 import static org.jetbrains.jet.lang.resolve.BindingContext.*;
 import static org.jetbrains.jet.lang.types.TypeUtils.NO_EXPECTED_TYPE;
+import static org.jetbrains.jet.lang.types.TypeUtils.noExpectedType;
 import static org.jetbrains.jet.lang.types.expressions.ExpressionTypingUtils.createFakeExpressionOfType;
 
 public class DelegatedPropertyResolver {
@@ -269,6 +270,7 @@ public class DelegatedPropertyResolver {
                     addConstraintForThisValue(constraintSystem, descriptor);
                 }
                 if (!propertyDescriptor.isVar()) return;
+                if (propertyDescriptor.getReturnType() instanceof DeferredType) return;
 
                 OverloadResolutionResults<FunctionDescriptor> setMethodResults =
                         getDelegatedPropertyConventionMethod(
@@ -280,8 +282,10 @@ public class DelegatedPropertyResolver {
                     if (valueParameters.size() == 3) {
                         ValueParameterDescriptor valueParameterForThis = valueParameters.get(2);
 
-                        constraintSystem
-                                .addSubtypeConstraint(expectedType, valueParameterForThis.getType(), ConstraintPosition.FROM_COMPLETER);
+                        if (!noExpectedType(expectedType)) {
+                            constraintSystem.addSubtypeConstraint(
+                                    expectedType, valueParameterForThis.getType(), ConstraintPosition.FROM_COMPLETER);
+                        }
                         addConstraintForThisValue(constraintSystem, descriptor);
                     }
                 }

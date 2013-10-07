@@ -16,30 +16,40 @@
 
 package org.jetbrains.jet.plugin.refactoring.changeSignature;
 
+import com.beust.jcommander.internal.Sets;
+import com.intellij.openapi.util.Condition;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.search.searches.OverridingMethodsSearch;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jet.asJava.LightClassUtil;
 import org.jetbrains.jet.lang.descriptors.*;
 import org.jetbrains.jet.lang.descriptors.impl.AnonymousFunctionDescriptor;
-import org.jetbrains.jet.lang.psi.JetClass;
-import org.jetbrains.jet.lang.psi.JetFunction;
-import org.jetbrains.jet.lang.psi.JetParameter;
+import org.jetbrains.jet.lang.psi.*;
+import org.jetbrains.jet.lang.resolve.BindingContext;
+import org.jetbrains.jet.lang.resolve.java.jetAsJava.JetClsMethod;
 import org.jetbrains.jet.lang.types.JetType;
 import org.jetbrains.jet.renderer.DescriptorRenderer;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
+import static org.jetbrains.jet.lang.resolve.BindingContextUtils.callableDescriptorToDeclaration;
+import static org.jetbrains.jet.lang.resolve.BindingContextUtils.getDirectlyOverriddenDeclarations;
 
 public class JetFunctionPlatformDescriptorImpl implements JetFunctionPlatformDescriptor {
     private final FunctionDescriptor funDescriptor;
     private final PsiElement funElement;
     private final List<JetParameterInfo> parameters;
+    @NotNull
+    private final BindingContext bindingContext;
 
-    public JetFunctionPlatformDescriptorImpl(FunctionDescriptor descriptor, PsiElement element) {
+    public JetFunctionPlatformDescriptorImpl(FunctionDescriptor descriptor, PsiElement element, @NotNull BindingContext bindingContext) {
         funDescriptor = descriptor;
         funElement = element;
+        this.bindingContext = bindingContext;
         final List<JetParameter> valueParameters = funElement instanceof JetFunction
                                               ? ((JetFunction) funElement).getValueParameters()
                                               : ((JetClass) funElement).getPrimaryConstructorParameters();
@@ -129,6 +139,46 @@ public class JetFunctionPlatformDescriptorImpl implements JetFunctionPlatformDes
     @Override
     public FunctionDescriptor getDescriptor() {
         return funDescriptor;
+    }
+
+    @NotNull
+    @Override
+    public Collection<PsiElement> getFunctionHierarchy() {
+        Set<PsiElement> result = Sets.newHashSet();
+        result.addAll(computeOverriddenDeclarations());
+        result.addAll(computeOverridingDeclarations());
+        return result;
+    }
+
+    @NotNull
+    private Collection<PsiElement> computeOverriddenDeclarations() {
+        Set<CallableMemberDescriptor> overriddenDeclarations = getDirectlyOverriddenDeclarations(funDescriptor);
+        Set<PsiElement> result = Sets.newHashSet();
+        for (CallableMemberDescriptor overriddenDeclaration : overriddenDeclarations) {
+            result.add(callableDescriptorToDeclaration(bindingContext, overriddenDeclaration));
+        }
+        return result;
+    }
+
+    @NotNull
+    private Collection<JetDeclaration> computeOverridingDeclarations() {
+        if (!(funElement instanceof JetNamedFunction)) {
+            return Collections.emptySet();
+        }
+        PsiMethod lightMethod = LightClassUtil.getLightClassMethod((JetNamedFunction) funElement);
+        Collection<PsiMethod> overridingMethods = OverridingMethodsSearch.search(lightMethod).findAll();
+        List<PsiMethod> jetLightMethods = ContainerUtil.filter(overridingMethods, new Condition<PsiMethod>() {
+            @Override
+            public boolean value(PsiMethod method) {
+                return method instanceof JetClsMethod;
+            }
+        });
+        return ContainerUtil.map(jetLightMethods, new Function<PsiMethod, JetDeclaration>() {
+            @Override
+            public JetDeclaration fun(PsiMethod method) {
+                return ((JetClsMethod) method).getOrigin();
+            }
+        });
     }
 
     @Override

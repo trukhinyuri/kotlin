@@ -32,6 +32,7 @@ import org.jetbrains.jet.lang.types.lang.KotlinBuiltIns;
 import org.jetbrains.jet.lexer.JetTokens;
 import org.jetbrains.jet.plugin.JetLanguage;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,7 @@ public class JetChangeInfo implements ChangeInfo {
     private final List<JetParameterInfo> newParameters;
     private final PsiElement context;
     private final JetGeneratedInfo generatedInfo;
+    private final Collection<PsiElement> functionHierarchy;
     private Boolean parameterNamesChanged;
     private Map<String, Integer> oldNameToParameterIndex;
 
@@ -56,7 +58,8 @@ public class JetChangeInfo implements ChangeInfo {
             Visibility newVisibility,
             List<JetParameterInfo> newParameters,
             PsiElement context,
-            JetGeneratedInfo generatedInfo
+            JetGeneratedInfo generatedInfo,
+            Collection<PsiElement> functionHierarchy
     ) {
         this.oldDescriptor = oldDescriptor;
         this.newName = newName;
@@ -66,6 +69,7 @@ public class JetChangeInfo implements ChangeInfo {
         this.newParameters = newParameters;
         this.context = context;
         this.generatedInfo = generatedInfo;
+        this.functionHierarchy = functionHierarchy;
     }
 
     public String getNewSignature(@Nullable JetFunction inheritedFunction, boolean isInherited) {
@@ -258,5 +262,10 @@ public class JetChangeInfo implements ChangeInfo {
     @Override
     public Language getLanguage() {
         return JetLanguage.INSTANCE;
+    }
+
+    @NotNull
+    public Collection<PsiElement> getFunctionHierarchy() {
+        return functionHierarchy;
     }
 }

@@ -85,7 +85,7 @@ public class AddFunctionParametersFix extends ChangeFunctionSignatureFix {
     @Override
     protected void invoke(@NotNull Project project, Editor editor, JetFile file) {
         BindingContext bindingContext = AnalyzerFacadeWithCache.analyzeFileWithCache((JetFile) callElement.getContainingFile()).getBindingContext();
-        JetFunctionPlatformDescriptorImpl platformDescriptor = new JetFunctionPlatformDescriptorImpl(functionDescriptor, element);
+        JetFunctionPlatformDescriptorImpl platformDescriptor = new JetFunctionPlatformDescriptorImpl(functionDescriptor, element, bindingContext);
         final List<ValueParameterDescriptor> parameters = functionDescriptor.getValueParameters();
         List<? extends ValueArgument> arguments = callElement.getValueArguments();
         JetNameValidator validator = JetNameValidator.getCollectingValidator(callElement.getProject());

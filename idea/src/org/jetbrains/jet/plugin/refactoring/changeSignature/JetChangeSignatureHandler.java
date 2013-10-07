@@ -137,7 +137,8 @@ public class JetChangeSignatureHandler implements ChangeSignatureHandler {
                 }
             }
 
-            return new JetChangeSignatureDialog(project, new JetFunctionPlatformDescriptorImpl((FunctionDescriptor) descriptor, element), context);
+            return new JetChangeSignatureDialog(project, new JetFunctionPlatformDescriptorImpl((FunctionDescriptor) descriptor, element,
+                                                                                               bindingContext), context);
         }
         else {
             String message = RefactoringBundle.getCannotRefactorMessage(JetRefactoringBundle.message(

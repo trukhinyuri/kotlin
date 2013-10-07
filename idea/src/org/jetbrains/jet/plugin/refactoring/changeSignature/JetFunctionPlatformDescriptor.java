@@ -23,6 +23,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jet.lang.descriptors.FunctionDescriptor;
 import org.jetbrains.jet.lang.descriptors.Visibility;
 
+import java.util.Collection;
+
 public interface JetFunctionPlatformDescriptor extends MethodDescriptor<JetParameterInfo, Visibility> {
     boolean isConstructor();
 
@@ -34,4 +36,7 @@ public interface JetFunctionPlatformDescriptor extends MethodDescriptor<JetParam
 
     @Nullable
     FunctionDescriptor getDescriptor();
+
+    @NotNull
+    Collection<PsiElement> getFunctionHierarchy();
 }

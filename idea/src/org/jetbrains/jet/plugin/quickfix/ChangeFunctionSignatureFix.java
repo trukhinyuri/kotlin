@@ -189,22 +189,25 @@ public abstract class ChangeFunctionSignatureFix extends JetIntentionAction<PsiE
                 functionDescriptor = (FunctionDescriptor) containingDescriptor;
         }
 
-        if (functionDescriptor != null) {
-            BindingContext bindingContext = AnalyzerFacadeWithCache.analyzeFileWithCache((JetFile) context.getContainingFile()).getBindingContext();
-            PsiElement declaration = BindingContextUtils.descriptorToDeclaration(bindingContext, functionDescriptor);
+        if (functionDescriptor == null) {
+            return null;
+        }
+        BindingContext bindingContext = AnalyzerFacadeWithCache.analyzeFileWithCache((JetFile) context.getContainingFile()).getBindingContext();
+        PsiElement declaration = BindingContextUtils.descriptorToDeclaration(bindingContext, functionDescriptor);
 
-            if (declaration != null) {
-                if (descriptor instanceof ValueParameterDescriptor)
-                    return new RemoveFunctionParametersFix(declaration, context, functionDescriptor, (ValueParameterDescriptor) descriptor);
-                else {
-                    List<ValueParameterDescriptor> parameters = functionDescriptor.getValueParameters();
-                    List<? extends ValueArgument> arguments = callElement.getValueArguments();
+        if (declaration == null) {
+            return null;
+        }
+        if (descriptor instanceof ValueParameterDescriptor) {
+            return new RemoveFunctionParametersFix(declaration, context, functionDescriptor, (ValueParameterDescriptor) descriptor);
+        }
+        else {
+            List<ValueParameterDescriptor> parameters = functionDescriptor.getValueParameters();
+            List<? extends ValueArgument> arguments = callElement.getValueArguments();
 
-                    if (arguments.size() > parameters.size()) {
-                        boolean hasTypeMismatches = hasTypeMismatches(parameters, arguments, bindingContext);
-                        return new AddFunctionParametersFix(declaration, callElement, functionDescriptor, hasTypeMismatches);
-                    }
-                }
+            if (arguments.size() > parameters.size()) {
+                boolean hasTypeMismatches = hasTypeMismatches(parameters, arguments, bindingContext);
+                return new AddFunctionParametersFix(declaration, callElement, functionDescriptor, hasTypeMismatches);
             }
         }
 

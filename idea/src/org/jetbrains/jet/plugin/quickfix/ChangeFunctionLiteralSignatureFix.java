@@ -22,8 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jet.lang.descriptors.FunctionDescriptor;
 import org.jetbrains.jet.lang.psi.JetFile;
 import org.jetbrains.jet.lang.psi.JetFunctionLiteral;
+import org.jetbrains.jet.lang.resolve.BindingContext;
 import org.jetbrains.jet.lang.types.JetType;
 import org.jetbrains.jet.plugin.JetBundle;
+import org.jetbrains.jet.plugin.project.AnalyzerFacadeWithCache;
 import org.jetbrains.jet.plugin.refactoring.JetNameSuggester;
 import org.jetbrains.jet.plugin.refactoring.JetNameValidator;
 import org.jetbrains.jet.plugin.refactoring.changeSignature.JetFunctionPlatformDescriptorImpl;
@@ -50,7 +52,9 @@ public class ChangeFunctionLiteralSignatureFix extends ChangeFunctionSignatureFi
 
     @Override
     protected void invoke(@NotNull Project project, Editor editor, JetFile file) {
-        JetFunctionPlatformDescriptorImpl platformDescriptor = new JetFunctionPlatformDescriptorImpl(functionDescriptor, element);
+        BindingContext bindingContext = AnalyzerFacadeWithCache.analyzeFileWithCache(file).getBindingContext();
+        JetFunctionPlatformDescriptorImpl platformDescriptor
+                = new JetFunctionPlatformDescriptorImpl(functionDescriptor, element, bindingContext);
         JetNameValidator validator = JetNameValidator.getCollectingValidator(project);
         platformDescriptor.clearParameters();
 

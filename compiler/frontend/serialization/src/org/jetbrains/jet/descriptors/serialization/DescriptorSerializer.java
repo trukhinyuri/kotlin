@@ -188,8 +188,6 @@ public class DescriptorSerializer {
                 descriptor.getModality(),
                 descriptor.getKind(),
                 callableKind(descriptor),
-                descriptor instanceof SimpleFunctionDescriptor &&
-                ((SimpleFunctionDescriptor) descriptor).isInline(),
                 hasGetter,
                 hasSetter
         ));

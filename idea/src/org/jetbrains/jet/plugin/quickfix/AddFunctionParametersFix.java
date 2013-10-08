@@ -16,7 +16,6 @@
 
 package org.jetbrains.jet.plugin.quickfix;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -33,12 +32,12 @@ import org.jetbrains.jet.lang.types.checker.JetTypeChecker;
 import org.jetbrains.jet.plugin.JetBundle;
 import org.jetbrains.jet.plugin.project.AnalyzerFacadeWithCache;
 import org.jetbrains.jet.plugin.refactoring.JetNameValidator;
-import org.jetbrains.jet.plugin.refactoring.changeSignature.JetChangeSignatureDialog;
-import org.jetbrains.jet.plugin.refactoring.changeSignature.JetFunctionPlatformDescriptorImpl;
-import org.jetbrains.jet.plugin.refactoring.changeSignature.JetParameterInfo;
+import org.jetbrains.jet.plugin.refactoring.changeSignature.*;
 import org.jetbrains.jet.renderer.DescriptorRenderer;
 
 import java.util.List;
+
+import static org.jetbrains.jet.plugin.refactoring.changeSignature.JetChangeSignatureUtil.runChangeSignature;
 
 public class AddFunctionParametersFix extends ChangeFunctionSignatureFix {
     private final JetCallElement callElement;
@@ -84,9 +83,16 @@ public class AddFunctionParametersFix extends ChangeFunctionSignatureFix {
 
     @Override
     protected void invoke(@NotNull Project project, Editor editor, JetFile file) {
+        //TODO: return selected index
+        boolean performSilently = !hasTypeMismatches && !(functionDescriptor instanceof ConstructorDescriptor) && !hasOtherUsages();
+        runChangeSignature(project, calculatePlatformDescriptor(), callElement, getText(), performSilently);
+    }
+
+    @NotNull
+    private JetFunctionPlatformDescriptor calculatePlatformDescriptor() {
         BindingContext bindingContext = AnalyzerFacadeWithCache.analyzeFileWithCache((JetFile) callElement.getContainingFile()).getBindingContext();
         JetFunctionPlatformDescriptorImpl platformDescriptor = new JetFunctionPlatformDescriptorImpl(functionDescriptor, element, bindingContext);
-        final List<ValueParameterDescriptor> parameters = functionDescriptor.getValueParameters();
+        List<ValueParameterDescriptor> parameters = functionDescriptor.getValueParameters();
         List<? extends ValueArgument> arguments = callElement.getValueArguments();
         JetNameValidator validator = JetNameValidator.getCollectingValidator(callElement.getProject());
 
@@ -111,19 +117,7 @@ public class AddFunctionParametersFix extends ChangeFunctionSignatureFix {
                 platformDescriptor.addParameter(parameterInfo);
             }
         }
-
-        JetChangeSignatureDialog dialog = new JetChangeSignatureDialog(project, platformDescriptor, callElement, getText()) {
-            @Override
-            protected int getSelectedIdx() {
-                return parameters.size();
-            }
-        };
-
-        if (ApplicationManager.getApplication().isUnitTestMode() ||
-            !hasTypeMismatches && !(functionDescriptor instanceof ConstructorDescriptor) && !hasOtherUsages())
-            performRefactoringSilently(dialog);
-        else
-            dialog.show();
+        return platformDescriptor;
     }
 
     private boolean hasOtherUsages() {

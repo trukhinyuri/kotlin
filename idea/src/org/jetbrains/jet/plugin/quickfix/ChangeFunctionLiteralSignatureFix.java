@@ -28,10 +28,13 @@ import org.jetbrains.jet.plugin.JetBundle;
 import org.jetbrains.jet.plugin.project.AnalyzerFacadeWithCache;
 import org.jetbrains.jet.plugin.refactoring.JetNameSuggester;
 import org.jetbrains.jet.plugin.refactoring.JetNameValidator;
+import org.jetbrains.jet.plugin.refactoring.changeSignature.JetFunctionPlatformDescriptor;
 import org.jetbrains.jet.plugin.refactoring.changeSignature.JetFunctionPlatformDescriptorImpl;
 import org.jetbrains.jet.plugin.refactoring.changeSignature.JetParameterInfo;
 
 import java.util.List;
+
+import static org.jetbrains.jet.plugin.refactoring.changeSignature.JetChangeSignatureUtil.runChangeSignature;
 
 public class ChangeFunctionLiteralSignatureFix extends ChangeFunctionSignatureFix {
     private final List<JetType> parameterTypes;
@@ -52,17 +55,20 @@ public class ChangeFunctionLiteralSignatureFix extends ChangeFunctionSignatureFi
 
     @Override
     protected void invoke(@NotNull Project project, Editor editor, JetFile file) {
+        runChangeSignature(project, calculatePlatformDescriptor(project, file), context, getText(), false);
+    }
+
+    @NotNull
+    private JetFunctionPlatformDescriptor calculatePlatformDescriptor(@NotNull Project project, @NotNull JetFile file) {
         BindingContext bindingContext = AnalyzerFacadeWithCache.analyzeFileWithCache(file).getBindingContext();
         JetFunctionPlatformDescriptorImpl platformDescriptor
                 = new JetFunctionPlatformDescriptorImpl(functionDescriptor, element, bindingContext);
         JetNameValidator validator = JetNameValidator.getCollectingValidator(project);
         platformDescriptor.clearParameters();
-
         for (JetType type : parameterTypes) {
             String name = JetNameSuggester.suggestNames(type, validator, "param")[0];
             platformDescriptor.addParameter(new JetParameterInfo(name, type));
         }
-
-        showDialog(project, platformDescriptor);
+        return platformDescriptor;
     }
 }

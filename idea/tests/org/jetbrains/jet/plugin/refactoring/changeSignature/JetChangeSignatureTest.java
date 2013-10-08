@@ -17,6 +17,7 @@
 package org.jetbrains.jet.plugin.refactoring.changeSignature;
 
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -36,8 +37,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static org.jetbrains.jet.plugin.refactoring.changeSignature.JetChangeSignatureUtil.createDialog;
 
 public class JetChangeSignatureTest extends LightCodeInsightTestCase {
     public void testBadSelection() throws Exception {
@@ -198,9 +197,12 @@ public class JetChangeSignatureTest extends LightCodeInsightTestCase {
         PsiFile file = getFile();
         PsiElement element = new JetChangeSignatureHandler().findTargetMember(file, editor);
         assertNotNull("Target element is null", element);
-        JetChangeSignatureDialog dialog = createDialog(element, file.findElementAt(editor.getCaretModel().getOffset()),
-                                                       getProject(), editor);
-        assertNotNull(dialog);
+        Project project = getProject();
+        JetFunctionPlatformDescriptorImpl platformDescriptor = JetChangeSignatureHandler.calculatePlatformDescriptor(element, project,
+                                                                                                                     editor);
+        assertNotNull(platformDescriptor);
+        JetChangeSignatureDialog dialog = new JetChangeSignatureDialog(project, platformDescriptor,
+                                                                       file.findElementAt(editor.getCaretModel().getOffset()));
         dialog.canRun();
         Disposer.register(getTestRootDisposable(), dialog.getDisposable());
         return dialog.evaluateChangeInfo();

@@ -26,9 +26,12 @@ import org.jetbrains.jet.lang.psi.JetFile;
 import org.jetbrains.jet.lang.resolve.BindingContext;
 import org.jetbrains.jet.plugin.JetBundle;
 import org.jetbrains.jet.plugin.project.AnalyzerFacadeWithCache;
+import org.jetbrains.jet.plugin.refactoring.changeSignature.JetFunctionPlatformDescriptor;
 import org.jetbrains.jet.plugin.refactoring.changeSignature.JetFunctionPlatformDescriptorImpl;
 
 import java.util.List;
+
+import static org.jetbrains.jet.plugin.refactoring.changeSignature.JetChangeSignatureUtil.runChangeSignature;
 
 public class RemoveFunctionParametersFix extends ChangeFunctionSignatureFix {
     private final ValueParameterDescriptor parameterToRemove;
@@ -51,11 +54,16 @@ public class RemoveFunctionParametersFix extends ChangeFunctionSignatureFix {
 
     @Override
     protected void invoke(@NotNull Project project, Editor editor, JetFile file) {
+        runChangeSignature(project, calculatePlatformDescriptor(file), context, getText(), false);
+    }
+
+    @NotNull
+    private JetFunctionPlatformDescriptor calculatePlatformDescriptor(@NotNull JetFile file) {
         BindingContext bindingContext = AnalyzerFacadeWithCache.analyzeFileWithCache(file).getBindingContext();
         JetFunctionPlatformDescriptorImpl platformDescriptor =
                 new JetFunctionPlatformDescriptorImpl(functionDescriptor, element, bindingContext);
         List<ValueParameterDescriptor> parameters = functionDescriptor.getValueParameters();
         platformDescriptor.removeParameter(parameters.indexOf(parameterToRemove));
-        showDialog(project, platformDescriptor);
+        return platformDescriptor;
     }
 }

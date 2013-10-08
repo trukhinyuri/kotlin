@@ -153,6 +153,7 @@ public class JetFunctionPlatformDescriptorImpl implements JetFunctionPlatformDes
         Set<PsiElement> result = Sets.newHashSet();
         result.addAll(computeOverriddenDeclarations());
         result.addAll(computeOverridingDeclarations());
+        result.add(funElement);
         return result;
     }
 

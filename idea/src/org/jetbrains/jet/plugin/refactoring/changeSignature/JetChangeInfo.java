@@ -265,7 +265,7 @@ public class JetChangeInfo implements ChangeInfo {
     }
 
     @NotNull
-    public Collection<PsiElement> getFunctionHierarchy() {
+    public Collection<PsiElement> getAffectedFunctions() {
         return functionHierarchy;
     }
 }

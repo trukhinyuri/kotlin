@@ -46,6 +46,7 @@ import org.jetbrains.jet.lang.resolve.java.JvmAnnotationNames;
 import org.jetbrains.jet.lang.resolve.java.JvmClassName;
 import org.jetbrains.jet.lang.resolve.name.FqName;
 import org.jetbrains.jet.lang.resolve.name.Name;
+import org.jetbrains.jet.lang.types.lang.InlineStrategy;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -278,7 +279,7 @@ public class NamespaceCodegen extends MemberCodegen {
                                                      Name.special("<clinit>"),
                                                      CallableMemberDescriptor.Kind.SYNTHESIZED);
             clInit.initialize(null, null, Collections.<TypeParameterDescriptor>emptyList(),
-                              Collections.<ValueParameterDescriptor>emptyList(), null, null, Visibilities.PRIVATE, false);
+                              Collections.<ValueParameterDescriptor>emptyList(), null, null, Visibilities.PRIVATE, InlineStrategy.NOT_INLINE);
 
             ExpressionCodegen codegen = new ExpressionCodegen(mv, frameMap, Type.VOID_TYPE, context.intoFunction(clInit), state);
 

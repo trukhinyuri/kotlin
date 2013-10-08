@@ -25,6 +25,8 @@ import org.jetbrains.jet.lang.descriptors.annotations.AnnotationDescriptor;
 import org.jetbrains.jet.lang.descriptors.impl.*;
 import org.jetbrains.jet.lang.resolve.DescriptorFactory;
 import org.jetbrains.jet.lang.resolve.DescriptorUtils;
+import org.jetbrains.jet.lang.types.lang.InlineStrategy;
+import org.jetbrains.jet.lang.types.lang.KotlinBuiltIns;
 import org.jetbrains.jet.storage.StorageManager;
 import org.jetbrains.jet.lang.resolve.name.FqNameUnsafe;
 import org.jetbrains.jet.lang.resolve.name.Name;
@@ -225,14 +227,17 @@ public class DescriptorDeserializer {
     @NotNull
     private CallableMemberDescriptor loadFunction(@NotNull Callable proto) {
         int flags = proto.getFlags();
+        List<AnnotationDescriptor> annotations = getAnnotations(proto, flags, AnnotatedCallableKind.FUNCTION);
         SimpleFunctionDescriptorImpl function = new SimpleFunctionDescriptorImpl(
                 containingDeclaration,
-                getAnnotations(proto, proto.getFlags(), AnnotatedCallableKind.FUNCTION),
+                annotations,
                 nameResolver.getName(proto.getName()),
                 memberKind(Flags.MEMBER_KIND.get(flags))
         );
         List<TypeParameterDescriptor> typeParameters = new ArrayList<TypeParameterDescriptor>(proto.getTypeParameterCount());
         DescriptorDeserializer local = createChildDeserializer(function, proto.getTypeParameterList(), typeParameters);
+
+        InlineStrategy inlineStrategy = KotlinBuiltIns.getInstance().getInlineType(annotations);
         function.initialize(
                 local.typeDeserializer.typeOrNull(proto.hasReceiverType() ? proto.getReceiverType() : null),
                 getExpectedThisObject(),
@@ -241,7 +246,7 @@ public class DescriptorDeserializer {
                 local.typeDeserializer.type(proto.getReturnType()),
                 modality(Flags.MODALITY.get(flags)),
                 visibility(Flags.VISIBILITY.get(flags)),
-                false
+                inlineStrategy
         );
         return function;
     }

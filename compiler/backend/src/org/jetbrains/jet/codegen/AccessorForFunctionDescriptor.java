@@ -21,6 +21,7 @@ import org.jetbrains.jet.lang.descriptors.annotations.AnnotationDescriptor;
 import org.jetbrains.jet.lang.descriptors.impl.SimpleFunctionDescriptorImpl;
 import org.jetbrains.jet.lang.resolve.DescriptorUtils;
 import org.jetbrains.jet.lang.resolve.name.Name;
+import org.jetbrains.jet.lang.types.lang.InlineStrategy;
 
 import java.util.Collections;
 
@@ -41,6 +42,6 @@ public class AccessorForFunctionDescriptor extends SimpleFunctionDescriptorImpl 
                 fd.getReturnType(),
                 Modality.FINAL,
                 Visibilities.INTERNAL,
-                   /*isInline = */ false);
+                   /*isInline = */ InlineStrategy.NOT_INLINE);
     }
 }

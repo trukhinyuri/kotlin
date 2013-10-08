@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jet.lang.descriptors.FunctionDescriptor;
 import org.jetbrains.jet.lang.descriptors.Visibility;
+import org.jetbrains.jet.lang.resolve.BindingContext;
 
 import java.util.Collection;
 
@@ -39,4 +40,7 @@ public interface JetFunctionPlatformDescriptor extends MethodDescriptor<JetParam
 
     @NotNull
     Collection<PsiElement> getFunctionHierarchy();
+
+    @NotNull
+    BindingContext getBindingContext();
 }

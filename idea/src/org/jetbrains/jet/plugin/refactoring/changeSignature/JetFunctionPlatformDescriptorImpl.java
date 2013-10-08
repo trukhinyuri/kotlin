@@ -158,6 +158,12 @@ public class JetFunctionPlatformDescriptorImpl implements JetFunctionPlatformDes
     }
 
     @NotNull
+    @Override
+    public BindingContext getBindingContext() {
+        return bindingContext;
+    }
+
+    @NotNull
     private Collection<PsiElement> computeOverriddenDeclarations() {
         Collection<CallableMemberDescriptor> overriddenDeclarations = getAllOverriddenDeclarations(funDescriptor);
         Set<PsiElement> result = Sets.newHashSet();

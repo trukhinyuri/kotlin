@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.jetbrains.jet.plugin.refactoring.changeSignature.JetChangeSignatureUtil.createDialog;
+
 public class JetChangeSignatureTest extends LightCodeInsightTestCase {
     public void testBadSelection() throws Exception {
         configureByFile(getTestName(false) + "Before.kt");
@@ -196,8 +198,8 @@ public class JetChangeSignatureTest extends LightCodeInsightTestCase {
         PsiFile file = getFile();
         PsiElement element = new JetChangeSignatureHandler().findTargetMember(file, editor);
         assertNotNull("Target element is null", element);
-        JetChangeSignatureDialog dialog =
-                JetChangeSignatureHandler.createDialog(element, file.findElementAt(editor.getCaretModel().getOffset()), getProject(), editor);
+        JetChangeSignatureDialog dialog = createDialog(element, file.findElementAt(editor.getCaretModel().getOffset()),
+                                                       getProject(), editor);
         assertNotNull(dialog);
         dialog.canRun();
         Disposer.register(getTestRootDisposable(), dialog.getDisposable());

@@ -16,7 +16,7 @@
 
 package org.jetbrains.jet.plugin.refactoring.changeSignature;
 
-import com.beust.jcommander.internal.Sets;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Condition;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
@@ -37,7 +37,7 @@ import org.jetbrains.jet.renderer.DescriptorRenderer;
 import java.util.*;
 
 import static org.jetbrains.jet.lang.resolve.BindingContextUtils.callableDescriptorToDeclaration;
-import static org.jetbrains.jet.lang.resolve.BindingContextUtils.getDirectlyOverriddenDeclarations;
+import static org.jetbrains.jet.lang.resolve.BindingContextUtils.getAllOverriddenDeclarations;
 
 public class JetFunctionPlatformDescriptorImpl implements JetFunctionPlatformDescriptor {
     private final FunctionDescriptor funDescriptor;
@@ -51,25 +51,30 @@ public class JetFunctionPlatformDescriptorImpl implements JetFunctionPlatformDes
         funElement = element;
         this.bindingContext = bindingContext;
         final List<JetParameter> valueParameters = funElement instanceof JetFunction
-                                              ? ((JetFunction) funElement).getValueParameters()
-                                              : ((JetClass) funElement).getPrimaryConstructorParameters();
-        parameters = new ArrayList<JetParameterInfo>(ContainerUtil.map(funDescriptor.getValueParameters(), new Function<ValueParameterDescriptor, JetParameterInfo>() {
-            @Override
-            public JetParameterInfo fun(ValueParameterDescriptor param) {
-                JetParameter parameter = valueParameters.get(param.getIndex());
-                return new JetParameterInfo(param.getIndex(), param.getName().asString(), param.getType(), parameter.getDefaultValue(), parameter.getValOrVarNode());
-            }
-        }));
+                                                   ? ((JetFunction) funElement).getValueParameters()
+                                                   : ((JetClass) funElement).getPrimaryConstructorParameters();
+        parameters = new ArrayList<JetParameterInfo>(
+                ContainerUtil.map(funDescriptor.getValueParameters(), new Function<ValueParameterDescriptor, JetParameterInfo>() {
+                    @Override
+                    public JetParameterInfo fun(ValueParameterDescriptor param) {
+                        JetParameter parameter = valueParameters.get(param.getIndex());
+                        return new JetParameterInfo(param.getIndex(), param.getName().asString(), param.getType(),
+                                                    parameter.getDefaultValue(), parameter.getValOrVarNode());
+                    }
+                }));
     }
 
     @Override
     public String getName() {
-        if (funDescriptor instanceof ConstructorDescriptor)
+        if (funDescriptor instanceof ConstructorDescriptor) {
             return funDescriptor.getContainingDeclaration().getName().asString();
-        else if (funDescriptor instanceof AnonymousFunctionDescriptor)
+        }
+        else if (funDescriptor instanceof AnonymousFunctionDescriptor) {
             return "";
-        else
+        }
+        else {
             return funDescriptor.getName().asString();
+        }
     }
 
     @Override
@@ -118,7 +123,8 @@ public class JetFunctionPlatformDescriptorImpl implements JetFunctionPlatformDes
     @Override
     public boolean canChangeVisibility() {
         DeclarationDescriptor parent = funDescriptor.getContainingDeclaration();
-        return !(funDescriptor instanceof AnonymousFunctionDescriptor || parent instanceof ClassDescriptor && ((ClassDescriptor) parent).getKind() == ClassKind.TRAIT);
+        return !(funDescriptor instanceof AnonymousFunctionDescriptor ||
+                 parent instanceof ClassDescriptor && ((ClassDescriptor) parent).getKind() == ClassKind.TRAIT);
     }
 
     @Override
@@ -152,7 +158,7 @@ public class JetFunctionPlatformDescriptorImpl implements JetFunctionPlatformDes
 
     @NotNull
     private Collection<PsiElement> computeOverriddenDeclarations() {
-        Set<CallableMemberDescriptor> overriddenDeclarations = getDirectlyOverriddenDeclarations(funDescriptor);
+        Collection<CallableMemberDescriptor> overriddenDeclarations = getAllOverriddenDeclarations(funDescriptor);
         Set<PsiElement> result = Sets.newHashSet();
         for (CallableMemberDescriptor overriddenDeclaration : overriddenDeclarations) {
             result.add(callableDescriptorToDeclaration(bindingContext, overriddenDeclaration));
@@ -166,6 +172,10 @@ public class JetFunctionPlatformDescriptorImpl implements JetFunctionPlatformDes
             return Collections.emptySet();
         }
         PsiMethod lightMethod = LightClassUtil.getLightClassMethod((JetNamedFunction) funElement);
+        // there are valid situations when light method is null: local functions and literals
+        if (lightMethod == null) {
+            return Collections.emptySet();
+        }
         Collection<PsiMethod> overridingMethods = OverridingMethodsSearch.search(lightMethod).findAll();
         List<PsiMethod> jetLightMethods = ContainerUtil.filter(overridingMethods, new Condition<PsiMethod>() {
             @Override

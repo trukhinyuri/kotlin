@@ -357,4 +357,23 @@ public class BindingContextUtils {
         }
         return OverridingUtil.filterOverrides(result);
     }
+
+    @NotNull
+    public static Set<CallableMemberDescriptor> getAllOverriddenDeclarations(@NotNull CallableMemberDescriptor callableMemberDescriptor) {
+        Set<CallableMemberDescriptor> result = Sets.newHashSet();
+        for (CallableMemberDescriptor overriddenDeclaration : callableMemberDescriptor.getOverriddenDescriptors()) {
+            CallableMemberDescriptor.Kind kind = overriddenDeclaration.getKind();
+            if (kind == DECLARATION) {
+                result.add(overriddenDeclaration);
+            }
+            else if (kind == DELEGATION || kind == FAKE_OVERRIDE || kind == SYNTHESIZED) {
+                //do nothing
+            }
+            else {
+                throw new AssertionError("Unexpected callable kind " + kind);
+            }
+            result.addAll(getAllOverriddenDeclarations(overriddenDeclaration));
+        }
+        return result;
+    }
 }

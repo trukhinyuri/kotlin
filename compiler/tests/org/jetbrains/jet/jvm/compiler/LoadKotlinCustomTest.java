@@ -22,12 +22,12 @@ import org.jetbrains.jet.analyzer.AnalyzeExhaust;
 import org.jetbrains.jet.lang.descriptors.NamespaceDescriptor;
 import org.jetbrains.jet.lang.resolve.BindingContext;
 import org.jetbrains.jet.test.TestCaseWithTmpdir;
-import org.jetbrains.jet.test.util.NamespaceComparator;
+import org.jetbrains.jet.test.util.RecursiveDescriptorComparator;
 
 import java.io.File;
 
 import static org.jetbrains.jet.jvm.compiler.LoadDescriptorUtil.*;
-import static org.jetbrains.jet.test.util.NamespaceComparator.*;
+import static org.jetbrains.jet.test.util.RecursiveDescriptorComparator.*;
 
 /*
  *  This test should be implemented via AbstractLoadCompiledKotlinTest.
@@ -43,7 +43,7 @@ public final class LoadKotlinCustomTest extends TestCaseWithTmpdir {
             throws Exception {
         NamespaceDescriptor namespaceFromClass =
                 compileKotlinAndLoadTestNamespaceDescriptorFromBinary(kotlinFile, tmpdir, myTestRootDisposable, ConfigurationKind.JDK_ONLY);
-        validateAndCompareNamespaceWithFile(namespaceFromClass, DONT_INCLUDE_METHODS_OF_OBJECT, expectedFile);
+        validateAndCompareDescriptorWithFile(namespaceFromClass, DONT_INCLUDE_METHODS_OF_OBJECT, expectedFile);
     }
 
     private void loadDescriptorsFromSourceAndCompareWithTxt(@NotNull File expectedFile, @NotNull File kotlinFile)
@@ -52,8 +52,9 @@ public final class LoadKotlinCustomTest extends TestCaseWithTmpdir {
         NamespaceDescriptor namespaceFromSource = exhaust.getBindingContext().get(BindingContext.FQNAME_TO_NAMESPACE_DESCRIPTOR,
                                                                                   TEST_PACKAGE_FQNAME);
         assert namespaceFromSource != null;
-        validateAndCompareNamespaceWithFile(namespaceFromSource, NamespaceComparator.DONT_INCLUDE_METHODS_OF_OBJECT.checkPrimaryConstructors(true),
-                                 expectedFile);
+        validateAndCompareDescriptorWithFile(namespaceFromSource,
+                                             RecursiveDescriptorComparator.DONT_INCLUDE_METHODS_OF_OBJECT.checkPrimaryConstructors(true),
+                                             expectedFile);
     }
 
     private void doTest(

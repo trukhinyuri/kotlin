@@ -35,7 +35,7 @@ import org.jetbrains.jet.lang.resolve.java.AnalyzerFacadeForJVM;
 import org.jetbrains.jet.lang.resolve.name.FqName;
 import org.jetbrains.jet.test.TestCaseWithTmpdir;
 import org.jetbrains.jet.test.util.DescriptorValidator;
-import org.jetbrains.jet.test.util.NamespaceComparator;
+import org.jetbrains.jet.test.util.RecursiveDescriptorComparator;
 import org.junit.Assert;
 
 import java.io.File;
@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Pattern;
 
-import static org.jetbrains.jet.test.util.NamespaceComparator.validateAndCompareNamespaceWithFile;
+import static org.jetbrains.jet.test.util.RecursiveDescriptorComparator.validateAndCompareDescriptorWithFile;
 
 public abstract class AbstractCompileKotlinAgainstCustomBinariesTest extends TestCaseWithTmpdir {
     protected void doTest(String ktFilePath) throws Exception {
@@ -64,8 +64,9 @@ public abstract class AbstractCompileKotlinAgainstCustomBinariesTest extends Tes
         NamespaceDescriptor namespaceDescriptor = bindingContext.get(BindingContext.FQNAME_TO_NAMESPACE_DESCRIPTOR, namespaceFqn);
         assertNotNull("Failed to find namespace: " + namespaceFqn, namespaceDescriptor);
 
-        validateAndCompareNamespaceWithFile(namespaceDescriptor, NamespaceComparator.DONT_INCLUDE_METHODS_OF_OBJECT.withValidationStrategy(
-                DescriptorValidator.ValidationVisitor.ALLOW_ERROR_TYPES), expectedFile);
+        validateAndCompareDescriptorWithFile(namespaceDescriptor,
+                                             RecursiveDescriptorComparator.DONT_INCLUDE_METHODS_OF_OBJECT.withValidationStrategy(
+                                                     DescriptorValidator.ValidationVisitor.ALLOW_ERROR_TYPES), expectedFile);
     }
 
     protected BindingContext analyzeFile(File ktFile) throws IOException {

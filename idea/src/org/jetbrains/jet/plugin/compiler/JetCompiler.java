@@ -31,6 +31,7 @@ import com.intellij.util.Chunk;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jet.cli.common.arguments.K2JVMCompilerArguments;
 import org.jetbrains.jet.cli.common.messages.MessageCollector;
 import org.jetbrains.jet.compiler.runner.*;
 import org.jetbrains.jet.plugin.JetFileType;
@@ -133,7 +134,13 @@ public class JetCompiler implements TranslatingCompiler {
             File scriptFile,
             OutputItemsCollector outputItemsCollector
     ) {
-        KotlinCompilerRunner.runK2JvmCompiler(messageCollector, environment, scriptFile, outputItemsCollector);
+        K2JVMCompilerArguments arguments = new K2JVMCompilerArguments();
+        arguments.verbose = true;
+        arguments.tags = true;
+        arguments.printArgs = true;
+        arguments.version = true;
+        arguments.module = scriptFile.getAbsolutePath();
+        KotlinCompilerRunner.runK2JvmCompiler(arguments, messageCollector, environment, outputItemsCollector);
     }
 
     public static File tryToWriteScriptFile(

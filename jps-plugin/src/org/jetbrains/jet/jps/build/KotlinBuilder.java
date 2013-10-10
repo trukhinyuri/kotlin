@@ -17,14 +17,19 @@
 package org.jetbrains.jet.jps.build;
 
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jet.cli.common.KotlinVersion;
+import org.jetbrains.jet.cli.common.arguments.CommonCompilerArguments;
+import org.jetbrains.jet.cli.common.arguments.K2JSCompilerArguments;
+import org.jetbrains.jet.cli.common.arguments.K2JVMCompilerArguments;
 import org.jetbrains.jet.cli.common.messages.CompilerMessageLocation;
 import org.jetbrains.jet.cli.common.messages.CompilerMessageSeverity;
 import org.jetbrains.jet.cli.common.messages.MessageCollector;
 import org.jetbrains.jet.compiler.runner.*;
+import org.jetbrains.jet.jps.JpsKotlinCompilerSettings;
 import org.jetbrains.jet.utils.PathUtil;
 import org.jetbrains.jps.ModuleChunk;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
@@ -33,13 +38,17 @@ import org.jetbrains.jps.incremental.*;
 import org.jetbrains.jps.incremental.java.JavaBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
+import org.jetbrains.jps.model.JpsProject;
 import org.jetbrains.jps.model.module.JpsModule;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import static org.jetbrains.jet.cli.common.messages.CompilerMessageSeverity.*;
 
@@ -117,25 +126,20 @@ public class KotlinBuilder extends ModuleLevelBuilder {
 
         OutputItemsCollectorImpl outputItemCollector = new OutputItemsCollectorImpl(outputDir);
 
-        if (JpsUtils.isJsKotlinModule(representativeTarget)) {
-            File outputFile = new File(outputDir, representativeTarget.getModule().getName() + ".js");
+        JpsProject project = representativeTarget.getModule().getProject();
 
-            KotlinCompilerRunner.runK2JsCompiler(
-                    messageCollector,
-                    environment,
-                    outputItemCollector,
-                    sourceFiles,
-                    JpsJsModuleUtils.getLibraryFilesAndDependencies(representativeTarget),
-                    outputFile);
+        if (JpsUtils.isJsKotlinModule(representativeTarget)) {
+            K2JSCompilerArguments settings = JpsKotlinCompilerSettings.getMergedK2JsSettings(project);
+            setupK2JsSettings(representativeTarget, sourceFiles, outputDir, settings);
+
+            KotlinCompilerRunner.runK2JsCompiler(settings, messageCollector, environment, outputItemCollector);
         }
         else {
             File moduleFile = KotlinBuilderModuleScriptGenerator.generateModuleDescription(context, representativeTarget, sourceFiles);
+            K2JVMCompilerArguments settings = JpsKotlinCompilerSettings.getMergedK2JvmSettings(project);
+            setupK2JvmSettings(outputDir, moduleFile, settings);
 
-            KotlinCompilerRunner.runK2JvmCompiler(
-                    messageCollector,
-                    environment,
-                    moduleFile,
-                    outputItemCollector);
+            KotlinCompilerRunner.runK2JvmCompiler(settings, messageCollector, environment, outputItemCollector);
         }
 
         for (SimpleOutputItem outputItem : outputItemCollector.getOutputs()) {
@@ -218,5 +222,51 @@ public class KotlinBuilder extends ModuleLevelBuilder {
     @Override
     public List<String> getCompilableFileExtensions() {
         return COMPILABLE_FILE_EXTENSIONS;
+    }
+
+    private static void setupCommonSettings(CommonCompilerArguments settings) {
+        settings.tags = true;
+        settings.verbose = true;
+        settings.version = true;
+        settings.printArgs = true;
+    }
+
+    private static void setupK2JvmSettings(
+            File outputDir,
+            File moduleFile,
+            K2JVMCompilerArguments settings
+    ) {
+        setupCommonSettings(settings);
+
+        settings.module = moduleFile.getAbsolutePath();
+        settings.outputDir = outputDir.getPath();
+        settings.notNullAssertions = true;
+        settings.notNullParamAssertions = true;
+        settings.noStdlib = true;
+        settings.noJdkAnnotations = true;
+        settings.noJdk = true;
+    }
+
+    private static void setupK2JsSettings(
+            ModuleBuildTarget representativeTarget,
+            List<File> sourceFiles,
+            File outputDir,
+            K2JSCompilerArguments settings
+    ) {
+        setupCommonSettings(settings);
+
+        List<String> sourceFilePaths = ContainerUtil.map(sourceFiles, new Function<File, String>() {
+            @Override
+            public String fun(File file) {
+                return file.getPath();
+            }
+        });
+        settings.sourceFiles = ArrayUtil.toStringArray(sourceFilePaths);
+
+        File outputFile = new File(outputDir, representativeTarget.getModule().getName() + ".js");
+        settings.outputFile = outputFile.getPath();
+
+        Set<String> dependencies = JpsJsModuleUtils.getLibraryFilesAndDependencies(representativeTarget);
+        settings.libraryFiles = ArrayUtil.toStringArray(dependencies);
     }
 }

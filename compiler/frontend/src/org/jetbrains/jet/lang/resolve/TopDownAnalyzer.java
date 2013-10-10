@@ -59,7 +59,7 @@ public class TopDownAnalyzer {
     @NotNull
     private ModuleDescriptor moduleDescriptor;
     @NotNull
-    private NamespaceFactoryImpl namespaceFactory;
+    private MutablePackageFragmentProvider packageFragmentProvider;
     @NotNull
     private BodyResolver bodyResolver;
 
@@ -104,8 +104,8 @@ public class TopDownAnalyzer {
     }
 
     @Inject
-    public void setNamespaceFactory(@NotNull NamespaceFactoryImpl namespaceFactory) {
-        this.namespaceFactory = namespaceFactory;
+    public void setPackageFragmentProvider(@NotNull MutablePackageFragmentProvider packageFragmentProvider) {
+        this.packageFragmentProvider = packageFragmentProvider;
     }
 
     @Inject
@@ -116,14 +116,13 @@ public class TopDownAnalyzer {
 
 
     public void doProcess(
-            JetScope outerScope,
             NamespaceLikeBuilder owner,
             Collection<? extends PsiElement> declarations) {
 //        context.enableDebugOutput();
         context.debug("Enter");
 
-        typeHierarchyResolver.process(outerScope, owner, declarations);
-        declarationResolver.process(outerScope);
+        typeHierarchyResolver.process(owner, declarations);
+        declarationResolver.process();
         overrideResolver.process();
 
         lockScopes();
@@ -239,23 +238,15 @@ public class TopDownAnalyzer {
     public void analyzeFiles(
             @NotNull Collection<JetFile> files,
             @NotNull List<AnalyzerScriptParameter> scriptParameters) {
-        WritableScope scope = new WritableScopeImpl(
-                JetScope.EMPTY, moduleDescriptor,
-                new TraceBasedRedeclarationHandler(trace), "Root scope in analyzeNamespace");
+        ((ModuleDescriptorImpl) moduleDescriptor).addFragmentProvider(packageFragmentProvider);
 
-        scope.changeLockLevel(WritableScope.LockLevel.BOTH);
-
-        NamespaceDescriptorImpl rootNs = namespaceFactory.createNamespaceDescriptorPathIfNeeded(FqName.ROOT);
-
-        // map "jet" namespace into KotlinBuiltIns
-        // @see DefaultModuleConfiguraiton#extendNamespaceScope
-        namespaceFactory.createNamespaceDescriptorPathIfNeeded(KotlinBuiltIns.getInstance().getBuiltInsPackageFqName());
+        // "depend on" builtin s module
+        ((ModuleDescriptorImpl) moduleDescriptor).addFragmentProvider(KotlinBuiltIns.getInstance().getBuiltInsModule().getPackageFragmentProvider());
 
         // Import a scope that contains all top-level namespaces that come from dependencies
         // This makes the namespaces visible at all, does not import themselves
-        scope.importScope(rootNs.getMemberScope());
-        
-        scope.changeLockLevel(WritableScope.LockLevel.READING);
+        PackageViewDescriptor rootPackage = moduleDescriptor.getPackage(FqName.ROOT);
+        assert rootPackage != null : "Coulnd't find root package for " + moduleDescriptor;
 
         // dummy builder is used because "root" is module descriptor,
         // namespaces added to module explicitly in

@@ -28,6 +28,12 @@ import org.jetbrains.jet.lang.resolve.name.Name;
 import java.util.Collection;
 import java.util.Set;
 
+// Reads from:
+// 1. Writable worker
+// 2. Worker (a.k.a outer)
+// 3. Imports
+
+// Writes to: writable worker
 public class WriteThroughScope extends WritableScopeWithImports {
     private final WritableScope writableWorker;
     private Collection<DeclarationDescriptor> allDescriptors;
@@ -98,16 +104,16 @@ public class WriteThroughScope extends WritableScopeWithImports {
 
     @Override
     @Nullable
-    public NamespaceDescriptor getNamespace(@NotNull Name name) {
+    public PackageViewDescriptor getPackage(@NotNull Name name) {
         checkMayRead();
 
-        NamespaceDescriptor namespace = writableWorker.getNamespace(name);
-        if (namespace != null) return namespace;
+        PackageViewDescriptor aPackage = writableWorker.getPackage(name);
+        if (aPackage != null) return aPackage;
 
-        namespace = getWorkerScope().getNamespace(name);
-        if (namespace != null) return namespace;
+        aPackage = getWorkerScope().getPackage(name);
+        if (aPackage != null) return aPackage;
 
-        return super.getNamespace(name); // Imports
+        return super.getPackage(name); // Imports
     }
 
     @Override

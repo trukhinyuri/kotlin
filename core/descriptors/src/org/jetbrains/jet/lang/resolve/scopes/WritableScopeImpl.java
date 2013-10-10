@@ -27,6 +27,13 @@ import org.jetbrains.jet.utils.CommonSuppliers;
 
 import java.util.*;
 
+// Reads from:
+// 1. Maps
+// 2. Worker
+// 3. Imports
+
+// Writes to: maps
+
 public class WritableScopeImpl extends WritableScopeWithImports {
 
     private final Collection<DeclarationDescriptor> allDescriptors = Lists.newArrayList();
@@ -445,18 +452,19 @@ public class WritableScopeImpl extends WritableScopeWithImports {
     }
 
     @Override
-    public NamespaceDescriptor getNamespace(@NotNull Name name) {
+    public PackageViewDescriptor getPackage(@NotNull Name name) {
         checkMayRead();
 
-        NamespaceDescriptor declaredNamespace = getDeclaredNamespace(name);
-        if (declaredNamespace != null) return declaredNamespace;
+        // TODO 1
+        //NamespaceDescriptor declaredNamespace = getDeclaredNamespace(name);
+        //if (declaredNamespace != null) return declaredNamespace;
 
-        NamespaceDescriptor aliased = getNamespaceAliases().get(name);
-        if (aliased != null) return aliased;
+        //NamespaceDescriptor aliased = getNamespaceAliases().get(name);
+        //if (aliased != null) return aliased;
 
-        NamespaceDescriptor namespace = getWorkerScope().getNamespace(name);
-        if (namespace != null) return namespace;
-        return super.getNamespace(name);
+        PackageViewDescriptor packageView = getWorkerScope().getPackage(name);
+        if (packageView != null) return packageView;
+        return super.getPackage(name);
     }
 
     @Override

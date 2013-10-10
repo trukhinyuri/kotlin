@@ -185,8 +185,8 @@ public class ImportsResolver {
             else if (wasResolved instanceof VariableDescriptor) {
                 isResolved = namespaceScope.getLocalVariable(aliasName);
             }
-            else if (wasResolved instanceof NamespaceDescriptor) {
-                isResolved = namespaceScope.getNamespace(aliasName);
+            else if (wasResolved instanceof PackageViewDescriptor) {
+                isResolved = namespaceScope.getPackage(aliasName);
             }
             if (isResolved == null || isResolved == wasResolved) {
                 uselessHiddenImport = false;

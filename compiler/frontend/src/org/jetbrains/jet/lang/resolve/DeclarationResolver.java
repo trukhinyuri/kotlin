@@ -382,7 +382,7 @@ public class DeclarationResolver {
         Collection<PsiElement> declarations;
         if (declarationDescriptor instanceof NamespaceDescriptor) {
             final NamespaceDescriptor namespace = (NamespaceDescriptor)declarationDescriptor;
-            Collection<JetFile> files = trace.get(BindingContext.NAMESPACE_TO_FILES, namespace);
+            Collection<JetFile> files = trace.get(BindingContext.PACKAGE_TO_FILES, namespace);
 
             if (files == null) {
                 throw new IllegalStateException("declarations corresponding to " + namespace + " are not found");

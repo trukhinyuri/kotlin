@@ -18,10 +18,12 @@ package org.jetbrains.jet.lang.resolve.lazy;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
+import com.intellij.util.containers.ContainerUtil;
 import jet.Function0;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +46,10 @@ import org.jetbrains.jet.lang.resolve.name.FqNameUnsafe;
 import org.jetbrains.jet.lang.resolve.name.Name;
 import org.jetbrains.jet.lang.resolve.scopes.JetScope;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.jetbrains.jet.lang.resolve.lazy.ResolveSessionUtils.safeNameForLazyResolve;
 
@@ -71,6 +76,8 @@ public class ResolveSession implements KotlinCodeAnalyzer {
     private final InjectorForLazyResolve injector;
 
     private final Function<FqName, Name> classifierAliases;
+
+    private final Map<FqName, LazyPackageDescriptor> packages = Maps.newHashMap();
 
     public ResolveSession(
             @NotNull Project project,
@@ -117,10 +124,51 @@ public class ResolveSession implements KotlinCodeAnalyzer {
         this.module = rootDescriptor;
         PackageMemberDeclarationProvider provider = declarationProviderFactory.getPackageMemberDeclarationProvider(FqName.ROOT);
         assert provider != null : "No declaration provider for root package in " + rootDescriptor;
-        this.rootPackage = new LazyPackageDescriptor(rootDescriptor, FqNameUnsafe.ROOT_NAME, this, provider);
-        rootDescriptor.setRootNamespace(rootPackage);
+        this.rootPackage = new LazyPackageDescriptor(rootDescriptor, FqName.ROOT, this, provider);
 
         this.declarationProviderFactory = declarationProviderFactory;
+
+        rootDescriptor.addFragmentProvider(new PackageFragmentProvider() {
+            @NotNull
+            @Override
+            public List<PackageFragmentDescriptor> getPackageFragments(@NotNull FqName fqName) {
+                return ContainerUtil.<PackageFragmentDescriptor>createMaybeSingletonList(getPackage(fqName));
+            }
+
+            @NotNull
+            @Override
+            public Collection<FqName> getSubPackagesOf(@NotNull FqName fqName) {
+                LazyPackageDescriptor packageDescriptor = getPackage(fqName);
+                if (packageDescriptor == null) {
+                    return Collections.emptyList();
+                }
+                return packageDescriptor.getDeclarationProvider().getAllDeclaredPackages();
+            }
+        });
+    }
+
+    @Nullable
+    private LazyPackageDescriptor getPackage(@NotNull FqName fqName) {
+        if (packages.containsKey(fqName)) {
+            return packages.get(fqName);
+        }
+
+        LazyPackageDescriptor result = createPackage(fqName);
+        packages.put(fqName, result);
+        return result;
+    }
+
+    @Nullable
+    private LazyPackageDescriptor createPackage(FqName fqName) {
+        LazyPackageDescriptor parent = getPackage(fqName.parent());
+        if (parent == null) {
+            return null;
+        }
+        PackageMemberDeclarationProvider provider = declarationProviderFactory.getPackageMemberDeclarationProvider(fqName);
+        if (provider == null) {
+            return null;
+        }
+        return new LazyPackageDescriptor(module, fqName, this, provider);
     }
 
     @NotNull
@@ -140,22 +188,6 @@ public class ResolveSession implements KotlinCodeAnalyzer {
     @NotNull
     public LazyResolveStorageManager getStorageManager() {
         return storageManager;
-    }
-
-    @Override
-    @Nullable
-    public NamespaceDescriptor getPackageDescriptorByFqName(FqName fqName) {
-        if (fqName.isRoot()) {
-            return rootPackage;
-        }
-        List<Name> names = fqName.pathSegments();
-        NamespaceDescriptor current = rootPackage.getMemberScope().getNamespace(names.get(0));
-        if (current == null) return null;
-        for (Name name : names.subList(1, names.size())) {
-            current = current.getMemberScope().getNamespace(name);
-            if (current == null) return null;
-        }
-        return current;
     }
 
     @Override

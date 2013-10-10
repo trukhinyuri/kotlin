@@ -19,7 +19,7 @@ package org.jetbrains.jet.descriptors.serialization;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jet.lang.descriptors.ClassDescriptor;
-import org.jetbrains.jet.lang.descriptors.NamespaceDescriptor;
+import org.jetbrains.jet.lang.descriptors.PackageFragmentDescriptor;
 import org.jetbrains.jet.lang.resolve.name.FqName;
 import org.jetbrains.jet.lang.resolve.name.Name;
 
@@ -36,7 +36,7 @@ public interface DescriptorFinder {
 
         @Nullable
         @Override
-        public NamespaceDescriptor findPackage(@NotNull FqName name) {
+        public PackageFragmentDescriptor findPackage(@NotNull FqName name) {
             return null;
         }
 
@@ -51,7 +51,7 @@ public interface DescriptorFinder {
     ClassDescriptor findClass(@NotNull ClassId classId);
 
     @Nullable
-    NamespaceDescriptor findPackage(@NotNull FqName name);
+    PackageFragmentDescriptor findPackage(@NotNull FqName name);
 
     @NotNull
     Collection<Name> getClassNames(@NotNull FqName packageName);

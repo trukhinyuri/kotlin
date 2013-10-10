@@ -249,9 +249,9 @@ public class QualifiedExpressionResolver {
         Name referencedName = referenceExpression.getReferencedNameAsName();
 
         Set<DeclarationDescriptor> descriptors = Sets.newHashSet();
-        NamespaceDescriptor namespaceDescriptor = outerScope.getNamespace(referencedName);
-        if (namespaceDescriptor != null) {
-            descriptors.add(namespaceDescriptor);
+        PackageViewDescriptor packageDescriptor = outerScope.getPackage(referencedName);
+        if (packageDescriptor != null) {
+            descriptors.add(packageDescriptor);
         }
 
         ClassifierDescriptor classifierDescriptor = outerScope.getClassifier(referencedName);

@@ -54,7 +54,7 @@ public abstract class AbstractLazyResolveDescriptorRendererTest extends KotlinTe
         JetFile psiFile = JetPsiFactory.createFile(getProject(), FileUtil.loadFile(new File(testFile), true));
         Collection<JetFile> files = Lists.newArrayList(psiFile);
 
-        ModuleDescriptorImpl lazyModule = AnalyzerFacadeForJVM.createJavaModule("<lazy module>");
+        final ModuleDescriptorImpl lazyModule = AnalyzerFacadeForJVM.createJavaModule("<lazy module>");
         lazyModule.setModuleConfiguration(injectorForTopDownAnalyzer.getModuleDescriptor().getModuleConfiguration());
         LockBasedLazyResolveStorageManager storageManager = new LockBasedLazyResolveStorageManager();
         final ResolveSession resolveSession = new ResolveSession(getProject(), storageManager, lazyModule,
@@ -66,7 +66,7 @@ public abstract class AbstractLazyResolveDescriptorRendererTest extends KotlinTe
             public void visitJetFile(JetFile file) {
                 String qualifiedName = file.getNamespaceHeader().getQualifiedName();
                 if (!qualifiedName.isEmpty()) {
-                    NamespaceDescriptor packageDescriptor = resolveSession.getPackageDescriptorByFqName(new FqName(qualifiedName));
+                    PackageViewDescriptor packageDescriptor = lazyModule.getPackage(new FqName(qualifiedName));
                     descriptors.add(packageDescriptor);
                 }
                 file.acceptChildren(this);

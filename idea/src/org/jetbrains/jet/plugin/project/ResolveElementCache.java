@@ -181,7 +181,7 @@ public class ResolveElementCache {
             if (Name.isValidIdentifier(name.asString())) {
                 if (trace.getBindingContext().get(BindingContext.REFERENCE_TARGET, packageNameExpression) == null) {
                     FqName fqName = header.getParentFqName(packageNameExpression).child(name);
-                    NamespaceDescriptor packageDescriptor = resolveSession.getPackageDescriptorByFqName(fqName);
+                    PackageViewDescriptor packageDescriptor = resolveSession.getRootModuleDescriptor().getPackage(fqName);
                     assert packageDescriptor != null: "Package descriptor should be present in session for " + fqName;
                     trace.record(BindingContext.REFERENCE_TARGET, packageNameExpression, packageDescriptor);
                 }
@@ -340,15 +340,16 @@ public class ResolveElementCache {
 
             // Inside import
             if (PsiTreeUtil.getParentOfType(expression, JetImportDirective.class, false) != null) {
-                NamespaceDescriptor rootPackage = resolveSession.getPackageDescriptorByFqName(FqName.ROOT);
+                PackageViewDescriptor rootPackage = resolveSession.getRootModuleDescriptor().getPackage(FqName.ROOT);
                 assert rootPackage != null;
 
                 if (expression.getParent() instanceof JetDotQualifiedExpression) {
                     JetExpression element = ((JetDotQualifiedExpression) expression.getParent()).getReceiverExpression();
                     String name = ((JetFile) expression.getContainingFile()).getPackageName();
 
-                    NamespaceDescriptor filePackage =
-                            name != null ? resolveSession.getPackageDescriptorByFqName(new FqName(name)) : rootPackage;
+                    PackageViewDescriptor filePackage = name != null
+                                                        ? resolveSession.getRootModuleDescriptor().getPackage(new FqName(name))
+                                                        : rootPackage;
                     assert filePackage != null : "File package should be already resolved and be found";
 
                     JetScope scope = filePackage.getMemberScope();
@@ -366,8 +367,8 @@ public class ResolveElementCache {
                     }
 
                     for (DeclarationDescriptor descriptor : descriptors) {
-                        if (descriptor instanceof NamespaceDescriptor) {
-                            return ((NamespaceDescriptor) descriptor).getMemberScope();
+                        if (descriptor instanceof PackageViewDescriptor) {
+                            return ((PackageViewDescriptor) descriptor).getMemberScope();
                         }
                     }
                 }
@@ -379,8 +380,8 @@ public class ResolveElementCache {
             // Inside package declaration
             JetNamespaceHeader namespaceHeader = PsiTreeUtil.getParentOfType(expression, JetNamespaceHeader.class, false);
             if (namespaceHeader != null) {
-                NamespaceDescriptor packageDescriptor = resolveSession.getPackageDescriptorByFqName(
-                        namespaceHeader.getParentFqName((JetReferenceExpression) expression));
+                PackageViewDescriptor packageDescriptor = resolveSession.getRootModuleDescriptor().getPackage(
+                        namespaceHeader.getParentFqName((JetSimpleNameExpression) expression));
                 if (packageDescriptor != null) {
                     return packageDescriptor.getMemberScope();
                 }

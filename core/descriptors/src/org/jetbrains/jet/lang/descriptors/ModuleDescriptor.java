@@ -32,8 +32,10 @@ public interface ModuleDescriptor extends DeclarationDescriptor, NamespaceDescri
     @Nullable
     DeclarationDescriptor getContainingDeclaration();
 
-    @Nullable
-    NamespaceDescriptor getNamespace(@NotNull FqName fqName);
+    PackageFragmentProvider getPackageFragmentProvider();
+
+    @NotNull
+    PackageViewDescriptor getPackage(@NotNull FqName fqName);
 
     @NotNull
     ModuleConfiguration getModuleConfiguration();

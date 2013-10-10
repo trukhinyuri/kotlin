@@ -25,6 +25,7 @@ import org.jetbrains.jet.descriptors.serialization.descriptors.DeserializedClass
 import org.jetbrains.jet.descriptors.serialization.descriptors.DeserializedPackageMemberScope;
 import org.jetbrains.jet.lang.descriptors.ClassDescriptor;
 import org.jetbrains.jet.lang.descriptors.NamespaceDescriptor;
+import org.jetbrains.jet.lang.descriptors.PackageFragmentDescriptor;
 import org.jetbrains.jet.lang.resolve.java.resolver.ErrorReporter;
 import org.jetbrains.jet.lang.resolve.java.resolver.JavaClassResolver;
 import org.jetbrains.jet.lang.resolve.java.resolver.JavaNamespaceResolver;
@@ -63,8 +64,10 @@ public final class DeserializedDescriptorResolver {
 
         @Nullable
         @Override
-        public NamespaceDescriptor findPackage(@NotNull FqName name) {
-            return javaNamespaceResolver.resolveNamespace(name, IGNORE_KOTLIN_SOURCES);
+        public PackageFragmentDescriptor findPackage(@NotNull FqName name) {
+            // TODO 1
+            return null;
+            //return javaNamespaceResolver.resolveNamespace(name, IGNORE_KOTLIN_SOURCES);
         }
 
         @NotNull
@@ -102,7 +105,7 @@ public final class DeserializedDescriptorResolver {
     }
 
     @Nullable
-    public JetScope createKotlinPackageScope(@NotNull NamespaceDescriptor descriptor, @NotNull KotlinJvmBinaryClass kotlinClass) {
+    public JetScope createKotlinPackageScope(@NotNull PackageFragmentDescriptor descriptor, @NotNull KotlinJvmBinaryClass kotlinClass) {
         String[] data = readData(kotlinClass);
         return data == null ? null : new DeserializedPackageMemberScope(storageManager, descriptor, annotationDeserializer,
                                                                         javaDescriptorFinder, JavaProtoBufUtil.readPackageDataFrom(data));

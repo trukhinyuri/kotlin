@@ -274,7 +274,7 @@ public class CodegenBinding {
 
         for (FqName name : names) {
             NamespaceDescriptor namespaceDescriptor = bindingContext.get(BindingContext.FQNAME_TO_NAMESPACE_DESCRIPTOR, name);
-            Collection<JetFile> jetFiles = bindingContext.get(NAMESPACE_TO_FILES, namespaceDescriptor);
+            Collection<JetFile> jetFiles = bindingContext.get(PACKAGE_TO_FILES, namespaceDescriptor);
             if (jetFiles != null) {
                 answer.addAll(jetFiles);
             }

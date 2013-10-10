@@ -158,10 +158,11 @@ public final class JavaNamespaceResolver {
             cache.recordProperNamespace(namespaceDescriptor);
 
             if (kotlinClass != null) {
-                JetScope kotlinPackageScope = deserializedDescriptorResolver.createKotlinPackageScope(namespaceDescriptor, kotlinClass);
-                if (kotlinPackageScope != null) {
-                    return kotlinPackageScope;
-                }
+                // TODO 1
+                //JetScope kotlinPackageScope = deserializedDescriptorResolver.createKotlinPackageScope(namespaceDescriptor, kotlinClass);
+                //if (kotlinPackageScope != null) {
+                //    return kotlinPackageScope;
+                //}
             }
 
 

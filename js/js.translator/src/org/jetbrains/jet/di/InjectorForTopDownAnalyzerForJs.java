@@ -28,7 +28,7 @@ import org.jetbrains.jet.lang.resolve.TopDownAnalysisParameters;
 import org.jetbrains.jet.lang.resolve.BindingTrace;
 import org.jetbrains.jet.lang.descriptors.ModuleDescriptorImpl;
 import org.jetbrains.jet.lang.types.DependencyClassByQualifiedNameResolverDummyImpl;
-import org.jetbrains.jet.lang.resolve.NamespaceFactoryImpl;
+import org.jetbrains.jet.lang.resolve.MutablePackageFragmentProvider;
 import org.jetbrains.jet.lang.PlatformToKotlinClassMap;
 import org.jetbrains.jet.lang.resolve.DeclarationResolver;
 import org.jetbrains.jet.lang.resolve.AnnotationResolver;
@@ -64,6 +64,7 @@ public class InjectorForTopDownAnalyzerForJs {
     private final BindingTrace bindingTrace;
     private final ModuleDescriptorImpl moduleDescriptor;
     private final DependencyClassByQualifiedNameResolverDummyImpl dependencyClassByQualifiedNameResolverDummy;
+    private final MutablePackageFragmentProvider mutablePackageFragmentProvider;
     private final NamespaceFactoryImpl namespaceFactory;
     private final PlatformToKotlinClassMap platformToKotlinClassMap;
     private final DeclarationResolver declarationResolver;
@@ -101,6 +102,7 @@ public class InjectorForTopDownAnalyzerForJs {
         this.bindingTrace = bindingTrace;
         this.moduleDescriptor = moduleDescriptor;
         this.dependencyClassByQualifiedNameResolverDummy = new DependencyClassByQualifiedNameResolverDummyImpl();
+        this.mutablePackageFragmentProvider = new MutablePackageFragmentProvider(getModuleDescriptor());
         this.namespaceFactory = new NamespaceFactoryImpl();
         this.platformToKotlinClassMap = org.jetbrains.jet.lang.PlatformToKotlinClassMap.EMPTY;
         this.declarationResolver = new DeclarationResolver();
@@ -124,9 +126,9 @@ public class InjectorForTopDownAnalyzerForJs {
         this.topDownAnalyzer.setContext(topDownAnalysisContext);
         this.topDownAnalyzer.setDeclarationResolver(declarationResolver);
         this.topDownAnalyzer.setModuleDescriptor(moduleDescriptor);
-        this.topDownAnalyzer.setNamespaceFactory(namespaceFactory);
         this.topDownAnalyzer.setOverloadResolver(overloadResolver);
         this.topDownAnalyzer.setOverrideResolver(overrideResolver);
+        this.topDownAnalyzer.setPackageFragmentProvider(mutablePackageFragmentProvider);
         this.topDownAnalyzer.setTopDownAnalysisParameters(topDownAnalysisParameters);
         this.topDownAnalyzer.setTrace(bindingTrace);
         this.topDownAnalyzer.setTypeHierarchyResolver(typeHierarchyResolver);

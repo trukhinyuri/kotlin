@@ -16,13 +16,16 @@
 
 package org.jetbrains.jet.lang.descriptors;
 
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jet.lang.ModuleConfiguration;
 import org.jetbrains.jet.lang.PlatformToKotlinClassMap;
 import org.jetbrains.jet.lang.descriptors.annotations.AnnotationDescriptor;
+import org.jetbrains.jet.lang.descriptors.impl.CompositePackageFragmentProvider;
 import org.jetbrains.jet.lang.descriptors.impl.DeclarationDescriptorImpl;
 import org.jetbrains.jet.lang.descriptors.impl.NamespaceDescriptorImpl;
+import org.jetbrains.jet.lang.descriptors.impl.PackageViewDescriptorImpl;
 import org.jetbrains.jet.lang.resolve.ImportPath;
 import org.jetbrains.jet.lang.resolve.name.FqName;
 import org.jetbrains.jet.lang.resolve.name.Name;
@@ -33,6 +36,7 @@ import java.util.List;
 
 public class ModuleDescriptorImpl extends DeclarationDescriptorImpl implements ModuleDescriptor {
     private NamespaceDescriptor rootNamepsace;
+    private final List<PackageFragmentProvider> fragmentProviders = Lists.newArrayList();
     private ModuleConfiguration moduleConfiguration;
     private final List<ImportPath> defaultImports;
     private final PlatformToKotlinClassMap platformToKotlinClassMap;
@@ -57,22 +61,26 @@ public class ModuleDescriptorImpl extends DeclarationDescriptorImpl implements M
         this.rootNamepsace = rootNs;
     }
 
+    public void addFragmentProvider(@NotNull PackageFragmentProvider provider) {
+        fragmentProviders.add(provider);
+    }
+
     @Override
     @Nullable
     public DeclarationDescriptor getContainingDeclaration() {
         return null;
     }
 
-    @Nullable
     @Override
-    public NamespaceDescriptor getNamespace(@NotNull FqName fqName) {
-        if (fqName.isRoot()) return rootNamepsace;
-        NamespaceDescriptor current = rootNamepsace;
-        for (Name simpleName : fqName.pathSegments()) {
-            current = current.getMemberScope().getNamespace(simpleName);
-            if (current == null) return null;
-        }
-        return current;
+    public PackageFragmentProvider getPackageFragmentProvider() {
+        return new CompositePackageFragmentProvider(fragmentProviders);
+    }
+
+    // TODO 1 creation on each call - no good
+    @NotNull
+    @Override
+    public PackageViewDescriptor getPackage(@NotNull FqName fqName) {
+        return new PackageViewDescriptorImpl(this, fqName);
     }
 
     @NotNull

@@ -31,9 +31,6 @@ import org.jetbrains.jet.lang.resolve.name.Name;
 public interface KotlinCodeAnalyzer {
     ModuleDescriptor getRootModuleDescriptor();
 
-    @Nullable
-    NamespaceDescriptor getPackageDescriptorByFqName(FqName fqName);
-
     @NotNull
     ClassDescriptor getClassDescriptor(@NotNull JetClassOrObject classOrObject);
 

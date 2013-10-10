@@ -249,13 +249,16 @@ public interface BindingContext {
     WritableSlice<FqName, ClassDescriptor> FQNAME_TO_CLASS_DESCRIPTOR = new BasicWritableSlice<FqName, ClassDescriptor>(DO_NOTHING, true);
     WritableSlice<FqName, NamespaceDescriptor> FQNAME_TO_NAMESPACE_DESCRIPTOR =
             new BasicWritableSlice<FqName, NamespaceDescriptor>(DO_NOTHING);
-    WritableSlice<JetFile, NamespaceDescriptor> FILE_TO_NAMESPACE = Slices.createSimpleSlice();
-    WritableSlice<NamespaceDescriptor, Collection<JetFile>> NAMESPACE_TO_FILES = Slices.createSimpleSlice();
+    // TODO 1 remove it, now it's empty
+    @Deprecated
+    WritableSlice<JetFile, FqName> FILE_TO_NAMESPACE = Slices.createSimpleSlice();
+    WritableSlice<FqName, Collection<JetFile>> PACKAGE_TO_FILES = Slices.createSimpleSlice();
 
     /**
      * Each namespace found in src must be registered here.
      */
-    WritableSlice<NamespaceDescriptor, Boolean> NAMESPACE_IS_SRC = Slices.createSimpleSlice();
+    @Deprecated
+    WritableSlice<PackageFragmentDescriptor, Boolean> NAMESPACE_IS_SRC = Slices.createSimpleSlice();
 
     WritableSlice<ClassDescriptor, Boolean> INCOMPLETE_HIERARCHY = Slices.createCollectiveSetSlice();
 

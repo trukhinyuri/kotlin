@@ -267,7 +267,7 @@ public class JetShortNamesCache extends PsiShortNamesCache {
         }
 
         for (FqName affectedPackage : affectedPackages) {
-            NamespaceDescriptor packageDescriptor = resolveSession.getPackageDescriptorByFqName(affectedPackage);
+            PackageViewDescriptor packageDescriptor = resolveSession.getRootModuleDescriptor().getPackage(affectedPackage);
             assert packageDescriptor != null : "There's a function in stub index with invalid package: " + affectedPackage;
             JetScope memberScope = packageDescriptor.getMemberScope();
             result.addAll(memberScope.getFunctions(referenceName));

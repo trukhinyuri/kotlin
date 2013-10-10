@@ -380,8 +380,7 @@ public class DescriptorValidator {
         public Void visitNamespaceDescriptor(
                 NamespaceDescriptor descriptor, JetScope scope
         ) {
-            assertFound(scope, descriptor, scope.getNamespace(descriptor.getName()));
-            return null;
+            throw new IllegalStateException("namespace don't exist");
         }
 
         @Override
@@ -395,8 +394,7 @@ public class DescriptorValidator {
         public Void visitPackageViewDescriptor(
                 PackageViewDescriptor descriptor, JetScope scope
         ) {
-            // TODO
-            //assertFound(scope, descriptor, scope.getPackage(descriptor.getName()));
+            assertFound(scope, descriptor, scope.getPackage(descriptor.getName()));
             return null;
         }
 

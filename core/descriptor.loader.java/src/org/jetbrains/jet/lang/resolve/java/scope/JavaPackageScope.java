@@ -71,11 +71,6 @@ public final class JavaPackageScope extends JavaBaseScope {
         return null;
     }
 
-    @Override
-    public NamespaceDescriptor getNamespace(@NotNull Name name) {
-        return memberResolver.resolveNamespace(packageFQN.child(name), INCLUDE_KOTLIN_SOURCES);
-    }
-
     @NotNull
     @Override
     protected Collection<DeclarationDescriptor> computeAllDescriptors() {

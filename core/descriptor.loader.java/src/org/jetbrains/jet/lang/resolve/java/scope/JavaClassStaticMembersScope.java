@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jet.lang.descriptors.ClassDescriptor;
 import org.jetbrains.jet.lang.descriptors.DeclarationDescriptor;
 import org.jetbrains.jet.lang.descriptors.NamespaceDescriptor;
+import org.jetbrains.jet.lang.descriptors.PackageViewDescriptor;
 import org.jetbrains.jet.lang.resolve.java.resolver.JavaMemberResolver;
 import org.jetbrains.jet.lang.resolve.java.structure.JavaClass;
 import org.jetbrains.jet.lang.resolve.name.FqName;
@@ -47,17 +48,13 @@ public final class JavaClassStaticMembersScope extends JavaClassMembersScope {
         this.javaClass = javaClass;
     }
 
-    @Override
-    public NamespaceDescriptor getNamespace(@NotNull Name name) {
-        return memberResolver.resolveNamespace(packageFQN.child(name), INCLUDE_KOTLIN_SOURCES);
-    }
-
     @NotNull
     @Override
     protected Collection<DeclarationDescriptor> computeAllDescriptors() {
         Collection<DeclarationDescriptor> result = super.computeAllDescriptors();
         for (JavaClass nested : javaClass.getInnerClasses()) {
-            NamespaceDescriptor namespace = getNamespace(nested.getName());
+            // TODO 1 review
+            PackageViewDescriptor namespace = getPackage(nested.getName());
             if (namespace != null) {
                 result.add(namespace);
             }

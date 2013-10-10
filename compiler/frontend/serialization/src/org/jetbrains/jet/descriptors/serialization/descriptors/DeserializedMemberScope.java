@@ -187,8 +187,8 @@ public abstract class DeserializedMemberScope implements JetScope {
 
     @Nullable
     @Override
-    public NamespaceDescriptor getNamespace(@NotNull Name name) {
-        return null;
+    public PackageViewDescriptor getPackage(@NotNull Name name) {
+        return null;  // Package view is never a member of deserialized package fragment or class
     }
 
     @Nullable

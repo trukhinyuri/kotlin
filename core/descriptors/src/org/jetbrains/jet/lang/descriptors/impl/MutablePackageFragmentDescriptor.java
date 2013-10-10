@@ -14,59 +14,66 @@
  * limitations under the License.
  */
 
-package org.jetbrains.jet.lang.resolve.lazy.descriptors;
+package org.jetbrains.jet.lang.descriptors.impl;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jet.lang.descriptors.*;
+import org.jetbrains.jet.lang.descriptors.DeclarationDescriptor;
+import org.jetbrains.jet.lang.descriptors.DeclarationDescriptorVisitor;
+import org.jetbrains.jet.lang.descriptors.ModuleDescriptor;
+import org.jetbrains.jet.lang.descriptors.PackageFragmentDescriptor;
 import org.jetbrains.jet.lang.descriptors.annotations.AnnotationDescriptor;
-import org.jetbrains.jet.lang.resolve.lazy.ForceResolveUtil;
-import org.jetbrains.jet.lang.resolve.lazy.LazyDescriptor;
-import org.jetbrains.jet.lang.resolve.lazy.ResolveSession;
-import org.jetbrains.jet.lang.resolve.lazy.declarations.PackageMemberDeclarationProvider;
 import org.jetbrains.jet.lang.resolve.name.FqName;
 import org.jetbrains.jet.lang.resolve.name.Name;
-import org.jetbrains.jet.lang.resolve.scopes.*;
+import org.jetbrains.jet.lang.resolve.scopes.JetScope;
+import org.jetbrains.jet.lang.resolve.scopes.RedeclarationHandler;
+import org.jetbrains.jet.lang.resolve.scopes.WritableScope;
+import org.jetbrains.jet.lang.resolve.scopes.WritableScopeImpl;
 import org.jetbrains.jet.lang.types.TypeSubstitutor;
 
 import java.util.Collections;
 import java.util.List;
 
-public class LazyPackageDescriptor implements LazyDescriptor, PackageFragmentDescriptor {
-    private final ModuleDescriptor module;
-    private final JetScope memberScope;
-    private final FqName fqName;
-    private final PackageMemberDeclarationProvider declarationProvider;
+public class MutablePackageFragmentDescriptor implements PackageFragmentDescriptor {
 
-    public LazyPackageDescriptor(
+    private final ModuleDescriptor module;
+    private final FqName fqName;
+    private final WritableScope scope;
+    private final NamespaceLikeBuilder builder;
+
+    public MutablePackageFragmentDescriptor(
             @NotNull ModuleDescriptor module,
-            @NotNull FqName fqName,
-            @NotNull ResolveSession resolveSession,
-            @NotNull PackageMemberDeclarationProvider declarationProvider
+            @NotNull FqName fqName
     ) {
         this.module = module;
         this.fqName = fqName;
-        this.declarationProvider = declarationProvider;
-
-        this.memberScope = new LazyPackageMemberScope(resolveSession, declarationProvider, this);
-    }
-
-    @NotNull
-    @Override
-    public JetScope getMemberScope() {
-        return memberScope;
-    }
-
-    @NotNull
-    @Override
-    public DeclarationDescriptor getOriginal() {
-        return this;
+        this.scope = new WritableScopeImpl(JetScope.EMPTY, this, RedeclarationHandler.DO_NOTHING,
+                                           "Members of " + fqName + " in " + module);
+        this.builder = new ScopeBasedNamespaceLikeBuilder(this, scope);
     }
 
     @NotNull
     @Override
     public ModuleDescriptor getContainingDeclaration() {
         return module;
+    }
+
+    @NotNull
+    @Override
+    public FqName getFqName() {
+        return fqName;
+    }
+
+    @NotNull
+    @Override
+    public WritableScope getMemberScope() {
+        return scope;
+    }
+
+    @NotNull
+    @Override
+    public DeclarationDescriptor getOriginal() {
+        return this;
     }
 
     @Nullable
@@ -77,23 +84,12 @@ public class LazyPackageDescriptor implements LazyDescriptor, PackageFragmentDes
 
     @Override
     public <R, D> R accept(DeclarationDescriptorVisitor<R, D> visitor, D data) {
-        return null;  //TODO
+        return visitor.visitPackageFragmentDescriptor(this, data);
     }
 
     @Override
     public void acceptVoid(DeclarationDescriptorVisitor<Void, Void> visitor) {
-        //TODO
-    }
-
-    @NotNull
-    @Override
-    public FqName getFqName() {
-        return fqName;
-    }
-
-    @Override
-    public void forceResolveAllContents() {
-        ForceResolveUtil.forceResolveAllContents(memberScope);
+        visitor.visitPackageFragmentDescriptor(this, null);
     }
 
     @Override
@@ -108,7 +104,7 @@ public class LazyPackageDescriptor implements LazyDescriptor, PackageFragmentDes
     }
 
     @NotNull
-    public PackageMemberDeclarationProvider getDeclarationProvider() {
-        return declarationProvider;
+    public NamespaceLikeBuilder getBuilder() {
+        return builder;
     }
 }

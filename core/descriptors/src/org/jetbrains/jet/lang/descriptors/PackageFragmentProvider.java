@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-package org.jetbrains.jet.lang.resolve;
+package org.jetbrains.jet.lang.descriptors;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jet.lang.descriptors.impl.NamespaceDescriptorImpl;
 import org.jetbrains.jet.lang.resolve.name.FqName;
 
-public interface NamespaceFactory {
+import java.util.Collection;
+import java.util.List;
+
+public interface PackageFragmentProvider {
     @NotNull
-    NamespaceDescriptorImpl createNamespaceDescriptorPathIfNeeded(@NotNull FqName fqName);
+    List<PackageFragmentDescriptor> getPackageFragments(@NotNull FqName fqName);
+
+    /**
+     * @return declared subpackages of {@code fqName}
+     */
+    @NotNull
+    Collection<FqName> getSubPackagesOf(@NotNull FqName fqName);
 }

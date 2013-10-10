@@ -381,8 +381,22 @@ public class DescriptorSerializer {
         return builder;
     }
 
+    // TODO 1 remove
     @NotNull
     public ProtoBuf.Package.Builder packageProto(@NotNull NamespaceDescriptor descriptor) {
+        ProtoBuf.Package.Builder builder = ProtoBuf.Package.newBuilder();
+
+        for (DeclarationDescriptor declaration : sort(descriptor.getMemberScope().getAllDescriptors())) {
+            if (declaration instanceof PropertyDescriptor || declaration instanceof FunctionDescriptor) {
+                builder.addMember(callableProto((CallableMemberDescriptor) declaration));
+            }
+        }
+
+        return builder;
+    }
+
+    @NotNull
+    public ProtoBuf.Package.Builder packageProto(@NotNull PackageFragmentDescriptor descriptor) {
         ProtoBuf.Package.Builder builder = ProtoBuf.Package.newBuilder();
 
         for (DeclarationDescriptor declaration : sort(descriptor.getMemberScope().getAllDescriptors())) {

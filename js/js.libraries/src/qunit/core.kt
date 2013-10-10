@@ -7,5 +7,5 @@ import js.native
  */
 
 native
-public fun ok(actual: Boolean, message: String): Unit = js.noImpl;
+public fun ok(state: Boolean, message: String): Unit = js.noImpl;
 

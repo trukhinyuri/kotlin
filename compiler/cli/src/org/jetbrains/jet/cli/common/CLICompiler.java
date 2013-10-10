@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.sampullara.cli.Args;
+import com.sampullara.cli.ArgumentUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jet.cli.common.arguments.CompilerArguments;
 import org.jetbrains.jet.cli.common.messages.*;
@@ -119,7 +120,7 @@ public abstract class CLICompiler<A extends CompilerArguments> {
         MessageRenderer messageRenderer = getMessageRenderer(arguments);
         errStream.print(messageRenderer.renderPreamble());
 
-        printVersionIfNeeded(errStream, arguments, messageRenderer);
+        printArgumentsAndVersionIfNeeded(errStream, arguments, messageRenderer);
 
         MessageCollector collector = new PrintingMessageCollector(errStream, messageRenderer, arguments.isVerbose());
 
@@ -168,9 +169,19 @@ public abstract class CLICompiler<A extends CompilerArguments> {
         return arguments.isTags() ? MessageRenderer.TAGS : MessageRenderer.PLAIN;
     }
 
-    protected void printVersionIfNeeded(@NotNull PrintStream errStream,
+    protected void printArgumentsAndVersionIfNeeded(
+            @NotNull PrintStream errStream,
             @NotNull A arguments,
-            @NotNull MessageRenderer messageRenderer) {
+            @NotNull MessageRenderer messageRenderer
+    ) {
+        if (arguments.isPrintArgs()) {
+            String argumentsAsString = ArgumentUtils.convertArgumentsToString(arguments, createArguments());
+            String printArgsMessage = messageRenderer.render(CompilerMessageSeverity.INFO,
+                                                             "Invoking compiler " + getClass().getName() + " with arguments " + argumentsAsString,
+                                                             CompilerMessageLocation.NO_LOCATION);
+            errStream.println(printArgsMessage);
+        }
+
         if (arguments.isVersion()) {
             String versionMessage = messageRenderer.render(CompilerMessageSeverity.INFO,
                                                            "Kotlin Compiler version " + KotlinVersion.VERSION,
